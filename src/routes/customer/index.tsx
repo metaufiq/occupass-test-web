@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -8,8 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-
 
 type SortField = 'name' | 'email' | 'company' | 'status' | 'totalOrders';
 
@@ -32,7 +30,6 @@ const generateMockCustomers = (count: number): Customer[] => {
     totalOrders: Math.floor(Math.random() * 50) + 1
   }));
 };
-
 
 // Customer List Component
 const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)=>void}) => {
@@ -97,160 +94,173 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-green-500';
-      case 'Inactive': return 'bg-red-500';
-      case 'Pending': return 'bg-yellow-500';
-      default: return 'bg-gray-500';
+      case 'Active': return 'status-active text-white border-0';
+      case 'Inactive': return 'status-inactive text-white border-0';
+      case 'Pending': return 'status-pending text-white border-0';
+      default: return 'bg-muted text-muted-foreground border-0';
     }
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 min-h-screen">
-      <div>
-        <h2 className="text-3xl font-bold text-white mb-2">Customers</h2>
-        <p className="text-slate-400">Manage your customer database</p>
+    <div className="min-h-screen bg-background">
+      <div className="p-6 space-y-6">
+        <div className="mb-8">
+          <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Customers</h2>
+          <p className="text-muted-foreground text-lg">Manage your customer database with ease</p>
+        </div>
+
+        {/* Search and Filter Controls */}
+        <Card className="card-hover bg-card border-border shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search customers by name, email, or company..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 h-12 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-56 h-12 bg-input border-border text-foreground">
+                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="all" className="text-popover-foreground">All Statuses</SelectItem>
+                  <SelectItem value="Active" className="text-popover-foreground">Active</SelectItem>
+                  <SelectItem value="Inactive" className="text-popover-foreground">Inactive</SelectItem>
+                  <SelectItem value="Pending" className="text-popover-foreground">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Customer Table */}
+        <Card className="card-hover bg-card border-border shadow-xl">
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="p-12 text-center">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4"></div>
+                <div className="text-muted-foreground text-lg">Loading customers...</div>
+              </div>
+            ) : (
+              <>
+                <div className="overflow-x-auto">
+                  {/* Table Header */}
+                  <div className="grid grid-cols-6 gap-4 p-6 border-b border-border bg-muted/50">
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center">
+                        Name <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('email')}
+                    >
+                      <div className="flex items-center">
+                        Email <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('company')}
+                    >
+                      <div className="flex items-center">
+                        Company <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Status</div>
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('totalOrders')}
+                    >
+                      <div className="flex items-center">
+                        Orders <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Actions</div>
+                  </div>
+                  
+                  {/* Table Body */}
+                  <div className="divide-y divide-border">
+                    {paginatedCustomers.map((customer, index) => (
+                      <div 
+                        key={customer.id} 
+                        className={`grid grid-cols-6 gap-4 p-6 hover:bg-muted/30 transition-all duration-200 ${
+                          index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
+                        }`}
+                      >
+                        <div className="text-foreground font-medium text-base">{customer.name}</div>
+                        <div className="text-muted-foreground text-sm">{customer.email}</div>
+                        <div className="text-muted-foreground text-sm font-medium">{customer.company}</div>
+                        <div>
+                          <Badge className={`${getStatusBadgeClass(customer.status)} font-medium px-3 py-1 text-xs`}>
+                            {customer.status}
+                          </Badge>
+                        </div>
+                        <div className="text-foreground font-semibold">{customer.totalOrders}</div>
+                        <div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-primary/30 text-primary hover:text-primary-foreground hover:bg-primary transition-all duration-200 font-medium"
+                            onClick={() => onSelectCustomer(customer)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Pagination */}
+                <div className="flex items-center justify-between p-6 border-t border-border bg-muted/30">
+                  <div className="text-sm text-muted-foreground">
+                    Showing <span className="font-medium text-foreground">{((currentPage - 1) * itemsPerPage) + 1}</span> to{' '}
+                    <span className="font-medium text-foreground">{Math.min(currentPage * itemsPerPage, filteredCustomers.length)}</span> of{' '}
+                    <span className="font-medium text-foreground">{filteredCustomers.length}</span> customers
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                      onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-3">
+                      Page <span className="font-medium text-foreground">{currentPage}</span> of{' '}
+                      <span className="font-medium text-foreground">{totalPages}</span>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                      onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
-
-      {/* Search and Filter Controls */}
-      <Card className="bg-slate-800 border-slate-700">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search customers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-white">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Customer Table */}
-      <Card className="bg-slate-800 border-slate-700">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="text-slate-400">Loading customers...</div>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                {/* Table Header */}
-                <div className="grid grid-cols-6 gap-4 p-4 border-b border-slate-700 bg-slate-800/50">
-                  <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
-                    onClick={() => handleSort('name')}
-                  >
-                    <div className="flex items-center">
-                      Name <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
-                    onClick={() => handleSort('email')}
-                  >
-                    <div className="flex items-center">
-                      Email <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
-                    onClick={() => handleSort('company')}
-                  >
-                    <div className="flex items-center">
-                      Company <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="text-slate-200 font-medium">Status</div>
-                  <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
-                    onClick={() => handleSort('totalOrders')}
-                  >
-                    <div className="flex items-center">
-                      Orders <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="text-slate-200 font-medium">Actions</div>
-                </div>
-                
-                {/* Table Body */}
-                <div className="divide-y divide-slate-700">
-                  {paginatedCustomers.map((customer) => (
-                    <div key={customer.id} className="grid grid-cols-6 gap-4 p-4 hover:bg-slate-700/50 transition-colors">
-                      <div className="text-white font-medium">{customer.name}</div>
-                      <div className="text-slate-300">{customer.email}</div>
-                      <div className="text-slate-300">{customer.company}</div>
-                      <div>
-                        <Badge className={`${getStatusColor(customer.status)} text-white`}>
-                          {customer.status}
-                        </Badge>
-                      </div>
-                      <div className="text-slate-300">{customer.totalOrders}</div>
-                      <div>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
-                          onClick={() => onSelectCustomer(customer)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between p-4 border-t border-slate-700">
-                <div className="text-sm text-slate-400">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredCustomers.length)} of {filteredCustomers.length} customers
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-slate-400">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };

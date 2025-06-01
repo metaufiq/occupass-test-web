@@ -95,41 +95,41 @@ const OrderList = ({ onSelectOrder }:Props) => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Delivered': return 'bg-green-500';
-      case 'Shipped': return 'bg-blue-500';
-      case 'Processing': return 'bg-yellow-500';
-      case 'Pending': return 'bg-orange-500';
-      case 'Cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      case 'Delivered': return 'bg-chart-4 text-white';
+      case 'Shipped': return 'bg-primary text-primary-foreground';
+      case 'Processing': return 'bg-chart-5 text-white';
+      case 'Pending': return 'bg-chart-5 text-white';
+      case 'Cancelled': return 'bg-destructive text-destructive-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
-    <div className="p-6 space-y-6 bg-slate-900 min-h-screen">
+    <div className="p-6 space-y-6 bg-background min-h-screen">
       <div>
-        <h2 className="text-3xl font-bold text-white mb-2">Orders</h2>
-        <p className="text-slate-400">Track and manage customer orders</p>
+        <h2 className="text-3xl font-bold text-foreground mb-2">Orders</h2>
+        <p className="text-muted-foreground">Track and manage customer orders</p>
       </div>
 
       {/* Search and Filter Controls */}
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-card border-border card-hover">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search orders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-slate-700 border-slate-600 text-white placeholder:text-slate-400"
+                className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 bg-slate-700 border-slate-600 text-white">
+              <SelectTrigger className="w-48 bg-input border-border text-foreground">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-700 border-slate-600">
+              <SelectContent className="bg-popover border-border">
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Pending">Pending</SelectItem>
                 <SelectItem value="Processing">Processing</SelectItem>
@@ -143,19 +143,19 @@ const OrderList = ({ onSelectOrder }:Props) => {
       </Card>
 
       {/* Orders Table */}
-      <Card className="bg-slate-800 border-slate-700">
+      <Card className="bg-card border-border card-hover">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center">
-              <div className="text-slate-400">Loading orders...</div>
+              <div className="text-muted-foreground">Loading orders...</div>
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
                 {/* Table Header */}
-                <div className="grid grid-cols-7 gap-4 p-4 border-b border-slate-700 bg-slate-800/50">
+                <div className="grid grid-cols-7 gap-4 p-4 border-b border-border bg-muted/50">
                   <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('id')}
                   >
                     <div className="flex items-center">
@@ -163,7 +163,7 @@ const OrderList = ({ onSelectOrder }:Props) => {
                     </div>
                   </div>
                   <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('customerName')}
                   >
                     <div className="flex items-center">
@@ -171,16 +171,16 @@ const OrderList = ({ onSelectOrder }:Props) => {
                     </div>
                   </div>
                   <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('amount')}
                   >
                     <div className="flex items-center">
                       Amount <ArrowUpDown className="ml-2 h-4 w-4" />
                     </div>
                   </div>
-                  <div className="text-slate-200 font-medium">Status</div>
+                  <div className="text-foreground font-medium">Status</div>
                   <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('orderDate')}
                   >
                     <div className="flex items-center">
@@ -188,35 +188,35 @@ const OrderList = ({ onSelectOrder }:Props) => {
                     </div>
                   </div>
                   <div 
-                    className="text-slate-200 cursor-pointer hover:text-white font-medium"
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('items')}
                   >
                     <div className="flex items-center">
                       Items <ArrowUpDown className="ml-2 h-4 w-4" />
                     </div>
                   </div>
-                  <div className="text-slate-200 font-medium">Actions</div>
+                  <div className="text-foreground font-medium">Actions</div>
                 </div>
                 
                 {/* Table Body */}
-                <div className="divide-y divide-slate-700">
+                <div className="divide-y divide-border">
                   {paginatedOrders.map((order) => (
-                    <div key={order.id} className="grid grid-cols-7 gap-4 p-4 hover:bg-slate-700/50 transition-colors">
-                      <div className="text-white font-medium">{order.id}</div>
-                      <div className="text-slate-300">{order.customerName}</div>
-                      <div className="text-slate-300">${order.amount.toLocaleString()}</div>
+                    <div key={order.id} className="grid grid-cols-7 gap-4 p-4 hover:bg-muted/30 transition-colors">
+                      <div className="text-foreground font-medium">{order.id}</div>
+                      <div className="text-card-foreground">{order.customerName}</div>
+                      <div className="text-card-foreground">${order.amount.toLocaleString()}</div>
                       <div>
-                        <Badge className={`${getStatusColor(order.status)} text-white`}>
+                        <Badge className={getStatusColor(order.status)}>
                           {order.status}
                         </Badge>
                       </div>
-                      <div className="text-slate-300">{order.orderDate}</div>
-                      <div className="text-slate-300">{order.items}</div>
+                      <div className="text-card-foreground">{order.orderDate}</div>
+                      <div className="text-card-foreground">{order.items}</div>
                       <div>
                         <Button 
                           size="sm" 
                           variant="outline"
-                          className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+                          className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
                           onClick={() => onSelectOrder(order)}
                         >
                           View Details
@@ -228,27 +228,27 @@ const OrderList = ({ onSelectOrder }:Props) => {
               </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between p-4 border-t border-slate-700">
-                <div className="text-sm text-slate-400">
+              <div className="flex items-center justify-between p-4 border-t border-border">
+                <div className="text-sm text-muted-foreground">
                   Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+                    className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  <span className="text-sm text-slate-400">
+                  <span className="text-sm text-muted-foreground">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+                    className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
                   >
@@ -268,7 +268,7 @@ function RouteComponent() {
   return OrderList({
     onSelectOrder: (order) => {
       console.log(`Selected customer: ${order.customerName} (ID: ${order.id})`);  
-      // Handle customer selection, e.g., navigate to customer details page
+      // Here you can handle the selected order, e.g., navigate to order details page
     }
   });
 }
