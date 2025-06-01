@@ -2,71 +2,57 @@ import { createFileRoute } from '@tanstack/react-router'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import type { Customer } from '@/lib/types';
-import { Badge } from '@/components/ui/badge';
+import { Customer } from 'dtos';
+import { fetchAllCustomers } from '@/api/customers';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-type SortField = 'name' | 'email' | 'company' | 'status' | 'totalOrders';
+type SortField = 'contactName' | 'companyName' | 'city' | 'country' | 'phone';
 
 export const Route = createFileRoute('/customer/')({
   component: RouteComponent,
 })
-
-// Mock data generators (in real app, these would come from API)
-const generateMockCustomers = (count: number): Customer[] => {
-  const statuses = ['Active', 'Inactive', 'Pending'];
-  const companies = ['TechCorp', 'DataSystems', 'CloudWorks', 'InnovateLab', 'DigitalFlow'];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: `cust-${i + 1}`,
-    name: `Customer ${i + 1}`,
-    email: `customer${i + 1}@example.com`,
-    company: companies[i % companies.length],
-    status: statuses[i % statuses.length],
-    createdDate: new Date(2023, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
-    totalOrders: Math.floor(Math.random() * 50) + 1
-  }));
-};
 
 // Customer List Component
 const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)=>void}) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState<SortField>('name');
+  const [countryFilter, setCountryFilter] = useState('all');
+  const [sortField, setSortField] = useState<SortField>('contactName');
   const [sortDirection, setSortDirection] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // In real app, this would be an API call to the provided endpoint
     setLoading(true);
-    setTimeout(() => {
-      const mockData = generateMockCustomers(100);
-      setCustomers(mockData);
-      setFilteredCustomers(mockData);
+    fetchAllCustomers().then(response => {
+      if (response?.response?.results && response.response.results.length > 0) {
+        setCustomers(response.response.results);
+        setFilteredCustomers(response.response.results);
+      }
+    }).finally(() => {
       setLoading(false);
-    }, 500);
+    });
   }, []);
 
   useEffect(() => {
     let filtered = customers.filter(customer => {
-      const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           customer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           customer.company.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || customer.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesSearch = customer.contactName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           customer.companyName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           customer.city?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           customer.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCountry = countryFilter === 'all' || customer.country === countryFilter;
+      return matchesSearch && matchesCountry;
     });
 
     // Sort
     filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      const aValue = a[sortField] || '';
+      const bValue = b[sortField] || '';
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -76,7 +62,7 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
 
     setFilteredCustomers(filtered);
     setCurrentPage(1);
-  }, [customers, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [customers, searchTerm, countryFilter, sortField, sortDirection]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -94,14 +80,8 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
 
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
 
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case 'Active': return 'status-active text-white border-0';
-      case 'Inactive': return 'status-inactive text-white border-0';
-      case 'Pending': return 'status-pending text-white border-0';
-      default: return 'bg-muted text-muted-foreground border-0';
-    }
-  };
+  // Get unique countries for filter dropdown
+  const uniqueCountries = [...new Set(customers.map(c => c.country).filter(Boolean))].sort();
 
   return (
     <div className="min-h-screen bg-background">
@@ -118,22 +98,24 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                 <Input
-                  placeholder="Search customers by name, email, or company..."
+                  placeholder="Search customers by name, company, city, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 h-12 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <Select value={countryFilter} onValueChange={setCountryFilter}>
                 <SelectTrigger className="w-56 h-12 bg-input border-border text-foreground">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filter by country" />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border-border">
-                  <SelectItem value="all" className="text-popover-foreground">All Statuses</SelectItem>
-                  <SelectItem value="Active" className="text-popover-foreground">Active</SelectItem>
-                  <SelectItem value="Inactive" className="text-popover-foreground">Inactive</SelectItem>
-                  <SelectItem value="Pending" className="text-popover-foreground">Pending</SelectItem>
+                  <SelectItem value="all" className="text-popover-foreground">All Countries</SelectItem>
+                  {uniqueCountries.map(country => (
+                    <SelectItem key={country} value={country} className="text-popover-foreground">
+                      {country}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -155,35 +137,42 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
                   <div className="grid grid-cols-6 gap-4 p-6 border-b border-border bg-muted/50">
                     <div 
                       className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('name')}
+                      onClick={() => handleSort('contactName')}
                     >
                       <div className="flex items-center">
-                        Name <ArrowUpDown className="ml-2 h-4 w-4" />
+                        Contact Name <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </div>
                     <div 
                       className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('email')}
-                    >
-                      <div className="flex items-center">
-                        Email <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('company')}
+                      onClick={() => handleSort('companyName')}
                     >
                       <div className="flex items-center">
                         Company <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </div>
-                    <div className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Status</div>
                     <div 
                       className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('totalOrders')}
+                      onClick={() => handleSort('city')}
                     >
                       <div className="flex items-center">
-                        Orders <ArrowUpDown className="ml-2 h-4 w-4" />
+                        City <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('country')}
+                    >
+                      <div className="flex items-center">
+                        Country <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </div>
+                    </div>
+                    <div 
+                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                      onClick={() => handleSort('phone')}
+                    >
+                      <div className="flex items-center">
+                        Phone <ArrowUpDown className="ml-2 h-4 w-4" />
                       </div>
                     </div>
                     <div className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Actions</div>
@@ -198,15 +187,21 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
                           index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
                         }`}
                       >
-                        <div className="text-foreground font-medium text-base">{customer.name}</div>
-                        <div className="text-muted-foreground text-sm">{customer.email}</div>
-                        <div className="text-muted-foreground text-sm font-medium">{customer.company}</div>
-                        <div>
-                          <Badge className={`${getStatusBadgeClass(customer.status)} font-medium px-3 py-1 text-xs`}>
-                            {customer.status}
-                          </Badge>
+                        <div className="text-foreground font-medium text-base">
+                          {customer.contactName}
+                          {customer.contactTitle && (
+                            <div className="text-xs text-muted-foreground mt-1">{customer.contactTitle}</div>
+                          )}
                         </div>
-                        <div className="text-foreground font-semibold">{customer.totalOrders}</div>
+                        <div className="text-muted-foreground text-sm font-medium">{customer.companyName}</div>
+                        <div className="text-muted-foreground text-sm">
+                          {customer.city}
+                          {customer.region && (
+                            <div className="text-xs text-muted-foreground">{customer.region}</div>
+                          )}
+                        </div>
+                        <div className="text-muted-foreground text-sm font-medium">{customer.country}</div>
+                        <div className="text-foreground text-sm">{customer.phone}</div>
                         <div>
                           <Button 
                             size="sm" 
@@ -268,7 +263,7 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
 function RouteComponent() {
   return CustomerList({
     onSelectCustomer: (customer) => {
-      console.log(`Selected customer: ${customer.name}`);
+      console.log(`Selected customer: ${customer.contactName} from ${customer.companyName}`);
       
       // Handle customer selection, e.g., navigate to customer details page
     }
