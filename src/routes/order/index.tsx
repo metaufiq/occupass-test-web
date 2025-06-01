@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { formatDateAPI } from '@/lib/utils';
 
 type SortField = 'id' | 'customerId' | 'amount' | 'orderDate' | 'items' | 'freight';
 
@@ -53,8 +54,9 @@ const OrderList = ({ onSelectOrder }: Props) => {
   const [sortDirection, setSortDirection] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
-  const itemsPerPage = 10;
+  const [hasMorePages, setHasMorePages] = useState(true);
 
+  // Fetch orders whenever currentPage changes
   useEffect(() => {
     setLoading(true);
 
@@ -63,13 +65,15 @@ const OrderList = ({ onSelectOrder }: Props) => {
     }).then(response => {
       if (response.response && response.response.results) {
         setOrders(response.response.results);
+        setHasMorePages(!!response.response.results.length);
       }
     }).catch(error => {
       console.error('Error fetching orders:', error);
+      setHasMorePages(false);
     }).finally(() => {
       setLoading(false);
     });
-  }, []);
+  }, [currentPage]); // Added currentPage to dependency array
 
   useEffect(() => {
     let filtered = orders.filter(customerOrder => {
@@ -127,7 +131,6 @@ const OrderList = ({ onSelectOrder }: Props) => {
     });
 
     setFilteredOrders(filtered);
-    setCurrentPage(1);
   }, [orders, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleSort = (field: SortField) => {
@@ -139,12 +142,17 @@ const OrderList = ({ onSelectOrder }: Props) => {
     }
   };
 
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  const handlePreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
 
-  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const handleNextPage = () => {
+    if (hasMorePages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -155,11 +163,6 @@ const OrderList = ({ onSelectOrder }: Props) => {
       case 'Cancelled': return 'bg-destructive text-destructive-foreground';
       default: return 'bg-muted text-muted-foreground';
     }
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -266,7 +269,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
                 
                 {/* Table Body */}
                 <div className="divide-y divide-border">
-                  {paginatedOrders.map((customerOrder) => {
+                  {filteredOrders.map((customerOrder) => {
                     const order = customerOrder.order;
                     const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
                     const itemsCount = getItemsCount(customerOrder.orderDetails);
@@ -283,7 +286,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
                             {status}
                           </Badge>
                         </div>
-                        <div className="text-card-foreground">{formatDate(order.orderDate)}</div>
+                        <div className="text-card-foreground">{formatDateAPI(order.orderDate)}</div>
                         <div className="text-card-foreground">{itemsCount}</div>
                         <div>
                           <Button 
@@ -304,27 +307,27 @@ const OrderList = ({ onSelectOrder }: Props) => {
               {/* Pagination */}
               <div className="flex items-center justify-between p-4 border-t border-border">
                 <div className="text-sm text-muted-foreground">
-                  Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredOrders.length)} of {filteredOrders.length} orders
+                  Showing orders for page {currentPage}
                 </div>
                 <div className="flex items-center space-x-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    onClick={handlePreviousPage}
                     disabled={currentPage === 1}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
+                    Page {currentPage}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={handleNextPage}
+                    disabled={!hasMorePages}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
