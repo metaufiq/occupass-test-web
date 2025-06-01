@@ -2,39 +2,51 @@ import { useEffect, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
 
+import { CustomerOrder, Order, OrderDetail } from 'dtos';
+import { fetchOrders } from '@/api/orders';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Order } from '@/lib/types';
 
+type SortField = 'id' | 'customerId' | 'amount' | 'orderDate' | 'items' | 'freight';
 
-type SortField = 'id' | 'customerName' | 'amount' | 'status' | 'orderDate' | 'items';
+type SortValue = number | string | Date
 
-interface Props{
-  onSelectOrder: (order: Order) => void;
+type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+
+interface Props {
+  onSelectOrder: (order: CustomerOrder) => void;
 }
 
-const generateMockOrders = (count: number): Order[] => {
-  const statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: `ord-${i + 1}`,
-    customerId: `cust-${Math.floor(Math.random() * 50) + 1}`,
-    customerName: `Customer ${Math.floor(Math.random() * 50) + 1}`,
-    amount: Math.floor(Math.random() * 5000) + 100,
-    status: statuses[i % statuses.length],
-    orderDate: new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1).toISOString().split('T')[0],
-    items: Math.floor(Math.random() * 10) + 1
-  }));
+// Helper function to calculate total amount from order details
+const calculateOrderAmount = (orderDetails: OrderDetail[]) => {
+  return orderDetails.reduce((total, detail) => {
+    return total + (detail.unitPrice * detail.quantity * (1 - detail.discount));
+  }, 0);
 };
 
+// Helper function to get total items count
+const getItemsCount = (orderDetails: OrderDetail[]) => {
+  return orderDetails.reduce((total, detail) => total + detail.quantity, 0);
+};
+
+// Helper function to determine order status (since it's not in the backend)
+const getOrderStatus = (order: Order):OrderStatus => {
+  if (order.shippedDate) {
+    return 'Shipped';
+  } else if (order.orderDate) {
+    return 'Processing';
+  } else {
+    return 'Pending';
+  }
+};
 
 // Order List Component
-const OrderList = ({ onSelectOrder }:Props) => {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+const OrderList = ({ onSelectOrder }: Props) => {
+  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [filteredOrders, setFilteredOrders] = useState<CustomerOrder[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState<SortField>('orderDate');
@@ -44,28 +56,69 @@ const OrderList = ({ onSelectOrder }:Props) => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    // In real app, this would be an API call to the provided endpoint
     setLoading(true);
-    setTimeout(() => {
-      const mockData = generateMockOrders(150);
-      setOrders(mockData);
-      setFilteredOrders(mockData);
+
+    fetchOrders({
+      page: currentPage,
+    }).then(response => {
+      if (response.response && response.response.results) {
+        setOrders(response.response.results);
+      }
+    }).catch(error => {
+      console.error('Error fetching orders:', error);
+    }).finally(() => {
       setLoading(false);
-    }, 500);
+    });
   }, []);
 
   useEffect(() => {
-    let filtered = orders.filter(order => {
-      const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+    let filtered = orders.filter(customerOrder => {
+      const order = customerOrder.order;
+      const matchesSearch = 
+        order.id.toString().includes(searchTerm.toLowerCase()) ||
+        order.customerId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.shipName?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const orderStatus = getOrderStatus(order);
+      const matchesStatus = statusFilter === 'all' || orderStatus === statusFilter;
+      
       return matchesSearch && matchesStatus;
     });
 
     // Sort
     filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      let aValue: SortValue, bValue: SortValue;
+      
+      switch (sortField) {
+        case 'id':
+          aValue = a.order.id;
+          bValue = b.order.id;
+          break;
+        case 'customerId':
+          aValue = a.order.customerId;
+          bValue = b.order.customerId;
+          break;
+        case 'amount':
+          aValue = calculateOrderAmount(a.orderDetails);
+          bValue = calculateOrderAmount(b.orderDetails);
+          break;
+        case 'orderDate':
+          aValue = new Date(a.order.orderDate || '');
+          bValue = new Date(b.order.orderDate || '');
+          break;
+        case 'items':
+          aValue = getItemsCount(a.orderDetails);
+          bValue = getItemsCount(b.orderDetails);
+          break;
+        case 'freight':
+          aValue = a.order.freight;
+          bValue = b.order.freight;
+          break;
+        default:
+          aValue = a.order.id;
+          bValue = b.order.id;
+      }
+
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
       } else {
@@ -93,7 +146,7 @@ const OrderList = ({ onSelectOrder }:Props) => {
 
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: OrderStatus) => {
     switch (status) {
       case 'Delivered': return 'bg-chart-4 text-white';
       case 'Shipped': return 'bg-primary text-primary-foreground';
@@ -102,6 +155,11 @@ const OrderList = ({ onSelectOrder }:Props) => {
       case 'Cancelled': return 'bg-destructive text-destructive-foreground';
       default: return 'bg-muted text-muted-foreground';
     }
+  };
+
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -153,7 +211,7 @@ const OrderList = ({ onSelectOrder }:Props) => {
             <>
               <div className="overflow-x-auto">
                 {/* Table Header */}
-                <div className="grid grid-cols-7 gap-4 p-4 border-b border-border bg-muted/50">
+                <div className="grid grid-cols-8 gap-4 p-4 border-b border-border bg-muted/50">
                   <div 
                     className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
                     onClick={() => handleSort('id')}
@@ -164,7 +222,7 @@ const OrderList = ({ onSelectOrder }:Props) => {
                   </div>
                   <div 
                     className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('customerName')}
+                    onClick={() => handleSort('customerId')}
                   >
                     <div className="flex items-center">
                       Customer <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -176,6 +234,14 @@ const OrderList = ({ onSelectOrder }:Props) => {
                   >
                     <div className="flex items-center">
                       Amount <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </div>
+                  </div>
+                  <div 
+                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
+                    onClick={() => handleSort('freight')}
+                  >
+                    <div className="flex items-center">
+                      Freight <ArrowUpDown className="ml-2 h-4 w-4" />
                     </div>
                   </div>
                   <div className="text-foreground font-medium">Status</div>
@@ -200,30 +266,38 @@ const OrderList = ({ onSelectOrder }:Props) => {
                 
                 {/* Table Body */}
                 <div className="divide-y divide-border">
-                  {paginatedOrders.map((order) => (
-                    <div key={order.id} className="grid grid-cols-7 gap-4 p-4 hover:bg-muted/30 transition-colors">
-                      <div className="text-foreground font-medium">{order.id}</div>
-                      <div className="text-card-foreground">{order.customerName}</div>
-                      <div className="text-card-foreground">${order.amount.toLocaleString()}</div>
-                      <div>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status}
-                        </Badge>
+                  {paginatedOrders.map((customerOrder) => {
+                    const order = customerOrder.order;
+                    const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
+                    const itemsCount = getItemsCount(customerOrder.orderDetails);
+                    const status = getOrderStatus(order);
+                    
+                    return (
+                      <div key={order.id} className="grid grid-cols-8 gap-4 p-4 hover:bg-muted/30 transition-colors">
+                        <div className="text-foreground font-medium">{order.id}</div>
+                        <div className="text-card-foreground">{order.customerId}</div>
+                        <div className="text-card-foreground">${orderAmount.toFixed(2)}</div>
+                        <div className="text-card-foreground">${order.freight.toFixed(2)}</div>
+                        <div>
+                          <Badge className={getStatusColor(status)}>
+                            {status}
+                          </Badge>
+                        </div>
+                        <div className="text-card-foreground">{formatDate(order.orderDate)}</div>
+                        <div className="text-card-foreground">{itemsCount}</div>
+                        <div>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
+                            onClick={() => onSelectOrder(customerOrder)}
+                          >
+                            View Details
+                          </Button>
+                        </div>
                       </div>
-                      <div className="text-card-foreground">{order.orderDate}</div>
-                      <div className="text-card-foreground">{order.items}</div>
-                      <div>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                          onClick={() => onSelectOrder(order)}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -266,8 +340,8 @@ const OrderList = ({ onSelectOrder }:Props) => {
 
 function RouteComponent() {
   return OrderList({
-    onSelectOrder: (order) => {
-      console.log(`Selected customer: ${order.customerName} (ID: ${order.id})`);  
+    onSelectOrder: (customerOrder) => {
+      console.log(`Selected order: ${customerOrder.order.id} for customer: ${customerOrder.order.customerId}`);  
       // Here you can handle the selected order, e.g., navigate to order details page
     }
   });

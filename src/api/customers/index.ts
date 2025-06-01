@@ -1,7 +1,7 @@
 import { GetAllCustomers } from 'dtos'
 import { client } from '../client'
 
-export const fetchAllCustomers = async (params = {}) => {
-  const response = await client.api(new GetAllCustomers(params))
+export const fetchAllCustomers = async () => {
+  const response = await client.api(new GetAllCustomers())
   return response
 }
