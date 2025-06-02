@@ -8,6 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 
 type SortField = 'contactName' | 'companyName' | 'city' | 'country' | 'phone';
 
@@ -132,89 +140,102 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto">
-                  {/* Table Header */}
-                  <div className="grid grid-cols-6 gap-4 p-6 border-b border-border bg-muted/50">
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('contactName')}
-                    >
-                      <div className="flex items-center">
-                        Contact Name <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('companyName')}
-                    >
-                      <div className="flex items-center">
-                        Company <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('city')}
-                    >
-                      <div className="flex items-center">
-                        City <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('country')}
-                    >
-                      <div className="flex items-center">
-                        Country <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div 
-                      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
-                      onClick={() => handleSort('phone')}
-                    >
-                      <div className="flex items-center">
-                        Phone <ArrowUpDown className="ml-2 h-4 w-4" />
-                      </div>
-                    </div>
-                    <div className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Actions</div>
-                  </div>
-                  
-                  {/* Table Body */}
-                  <div className="divide-y divide-border">
-                    {paginatedCustomers.map((customer, index) => (
-                      <div 
-                        key={customer.id} 
-                        className={`grid grid-cols-6 gap-4 p-6 hover:bg-muted/30 transition-all duration-200 ${
-                          index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
-                        }`}
-                      >
-                        <div className="text-foreground font-medium text-base">
-                          {customer.contactName}
-                          {customer.contactTitle && (
-                            <div className="text-xs text-muted-foreground mt-1">{customer.contactTitle}</div>
-                          )}
-                        </div>
-                        <div className="text-muted-foreground text-sm font-medium">{customer.companyName}</div>
-                        <div className="text-muted-foreground text-sm">
-                          {customer.city}
-                          {customer.region && (
-                            <div className="text-xs text-muted-foreground">{customer.region}</div>
-                          )}
-                        </div>
-                        <div className="text-muted-foreground text-sm font-medium">{customer.country}</div>
-                        <div className="text-foreground text-sm">{customer.phone}</div>
-                        <div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="border-primary/30 text-primary hover:text-primary-foreground hover:bg-primary transition-all duration-200 font-medium"
-                            onClick={() => onSelectCustomer(customer)}
-                          >
-                            View Details
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="rounded-md border-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <TableHead 
+                          className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                          onClick={() => handleSort('contactName')}
+                        >
+                          <div className="flex items-center">
+                            Contact Name <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                          onClick={() => handleSort('companyName')}
+                        >
+                          <div className="flex items-center">
+                            Company <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                          onClick={() => handleSort('city')}
+                        >
+                          <div className="flex items-center">
+                            City <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                          onClick={() => handleSort('country')}
+                        >
+                          <div className="flex items-center">
+                            Country <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead 
+                          className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
+                          onClick={() => handleSort('phone')}
+                        >
+                          <div className="flex items-center">
+                            Phone <ArrowUpDown className="ml-2 h-4 w-4" />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-card-foreground font-semibold text-sm uppercase tracking-wider">
+                          Actions
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedCustomers.map((customer, index) => (
+                        <TableRow 
+                          key={customer.id}
+                          className={`hover:bg-muted/30 transition-all duration-200 border-border ${
+                            index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
+                          }`}
+                        >
+                          <TableCell className="py-4">
+                            <div className="text-foreground font-medium text-base">
+                              {customer.contactName}
+                              {customer.contactTitle && (
+                                <div className="text-xs text-muted-foreground mt-1">{customer.contactTitle}</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="text-muted-foreground text-sm font-medium">{customer.companyName}</div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="text-muted-foreground text-sm">
+                              {customer.city}
+                              {customer.region && (
+                                <div className="text-xs text-muted-foreground">{customer.region}</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="text-muted-foreground text-sm font-medium">{customer.country}</div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <div className="text-foreground text-sm">{customer.phone}</div>
+                          </TableCell>
+                          <TableCell className="py-4">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              className="border-primary/30 text-primary hover:text-primary-foreground hover:bg-primary transition-all duration-200 font-medium"
+                              onClick={() => onSelectCustomer(customer)}
+                            >
+                              View Details
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
 
                 {/* Pagination */}
@@ -264,12 +285,9 @@ function RouteComponent() {
   const navigate = useNavigate();
   return CustomerList({
     onSelectCustomer: (customer) => {
-      // Navigate to the customer details page
       navigate({
         to: `/customer/${customer.id}`,
       });
-      
-      // Handle customer selection, e.g., navigate to customer details page
     }
   });
 }
