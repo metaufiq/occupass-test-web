@@ -8,7 +8,7 @@ import {
   Package,
   Truck
 } from 'lucide-react';
-import { createFileRoute, useRouter } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 
 import useOrderStore from '@/stores/order';
 import type { CustomerOrder } from 'dtos';
@@ -25,10 +25,15 @@ export const Route = createFileRoute('/order/detail')({
 
 function RouteComponent() {
   const router = useRouter();
+  const navigate = useNavigate();
   const selectedCustomerOrder: CustomerOrder | null = useOrderStore((state) => state.selectedCustomerOrder);
 
   const handleGoBack = () => {
     router.history.back();
+  };
+
+  const handleGoToOrderPage = () => {
+    navigate({ to: '/order', replace: true });
   };
 
   if (!selectedCustomerOrder?.order) {
@@ -36,12 +41,12 @@ function RouteComponent() {
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-4xl mx-auto">
           <Button 
-            onClick={handleGoBack}
+            onClick={handleGoToOrderPage}
             variant="outline"
             className="mb-6"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Go Back
+            Go To Order Page
           </Button>
           
           <Card className="text-center">
