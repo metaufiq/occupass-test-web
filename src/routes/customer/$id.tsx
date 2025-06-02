@@ -34,25 +34,35 @@ function RouteComponent() {
     enabled: !!id,
   })
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto space-y-6">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-1/3" />
-            <Skeleton className="h-4 w-1/4" />
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 space-y-6">
-              <Skeleton className="h-64" />
-              <Skeleton className="h-64" />
+if (isLoading) {
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header Skeleton */}
+      <div className="gradient-bg border-b border-border">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-32" />
             </div>
-            <Skeleton className="h-64" />
+            <Skeleton className="h-6 w-24" />
           </div>
         </div>
       </div>
-    )
-  }
+
+      {/* Content Skeleton */}
+      <div className="max-w-7xl mx-auto p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-64" />
+            <Skeleton className="h-64" />
+          </div>
+          <Skeleton className="h-64" />
+        </div>
+      </div>
+    </div>
+  )
+}
 
   if (error) {
     return (

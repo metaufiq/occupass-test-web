@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import useOrderStore from '@/stores/order';
 
 type SortField = 'id' | 'customerId' | 'amount' | 'orderDate' | 'items' | 'freight';
@@ -173,6 +174,18 @@ const OrderList = ({ onSelectOrder }: Props) => {
     }
   };
 
+  const SortableTableHead = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
+    <TableHead 
+      className="cursor-pointer hover:text-primary transition-colors select-none"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center">
+        {children}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </div>
+    </TableHead>
+  );
+
   return (
     <div className="p-6 space-y-6 bg-background min-h-screen">
       <div>
@@ -220,96 +233,66 @@ const OrderList = ({ onSelectOrder }: Props) => {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                {/* Table Header */}
-                <div className="grid grid-cols-8 gap-4 p-4 border-b border-border bg-muted/50">
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('id')}
-                  >
-                    <div className="flex items-center">
-                      Order ID <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('customerId')}
-                  >
-                    <div className="flex items-center">
-                      Customer <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('amount')}
-                  >
-                    <div className="flex items-center">
-                      Amount <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('freight')}
-                  >
-                    <div className="flex items-center">
-                      Freight <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="text-foreground font-medium">Status</div>
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('orderDate')}
-                  >
-                    <div className="flex items-center">
-                      Date <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div 
-                    className="text-foreground cursor-pointer hover:text-primary font-medium transition-colors"
-                    onClick={() => handleSort('items')}
-                  >
-                    <div className="flex items-center">
-                      Items <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </div>
-                  </div>
-                  <div className="text-foreground font-medium">Actions</div>
-                </div>
-                
-                {/* Table Body */}
-                <div className="divide-y divide-border">
-                  {filteredOrders.map((customerOrder) => {
-                    const order = customerOrder.order;
-                    const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
-                    const itemsCount = getItemsCount(customerOrder.orderDetails);
-                    const status = getOrderStatus(order);
-                    
-                    return (
-                      <div key={order.id} className="grid grid-cols-8 gap-4 p-4 hover:bg-muted/30 transition-colors">
-                        <div className="text-foreground font-medium">{order.id}</div>
-                        <div className="text-card-foreground">{order.customerId}</div>
-                        <div className="text-card-foreground">${orderAmount.toFixed(2)}</div>
-                        <div className="text-card-foreground">${order.freight.toFixed(2)}</div>
-                        <div>
-                          <Badge className={getStatusColor(status)}>
-                            {status}
-                          </Badge>
-                        </div>
-                        <div className="text-card-foreground">{formatDateAPI(order.orderDate)}</div>
-                        <div className="text-card-foreground">{itemsCount}</div>
-                        <div>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                            onClick={() => onSelectOrder(customerOrder)}
+              <div className="rounded-md border border-border">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-border hover:bg-muted/50">
+                      <SortableTableHead field="id">Order ID</SortableTableHead>
+                      <SortableTableHead field="customerId">Customer</SortableTableHead>
+                      <SortableTableHead field="amount">Amount</SortableTableHead>
+                      <SortableTableHead field="freight">Freight</SortableTableHead>
+                      <TableHead>Status</TableHead>
+                      <SortableTableHead field="orderDate">Date</SortableTableHead>
+                      <SortableTableHead field="items">Items</SortableTableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredOrders.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                          No orders found
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      filteredOrders.map((customerOrder) => {
+                        const order = customerOrder.order;
+                        const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
+                        const itemsCount = getItemsCount(customerOrder.orderDetails);
+                        const status = getOrderStatus(order);
+                        
+                        return (
+                          <TableRow 
+                            key={order.id} 
+                            className="border-border hover:bg-muted/30 transition-colors"
                           >
-                            View Details
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                            <TableCell className="font-medium">{order.id}</TableCell>
+                            <TableCell>{order.customerId}</TableCell>
+                            <TableCell>${orderAmount.toFixed(2)}</TableCell>
+                            <TableCell>${order.freight.toFixed(2)}</TableCell>
+                            <TableCell>
+                              <Badge className={getStatusColor(status)}>
+                                {status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{formatDateAPI(order.orderDate)}</TableCell>
+                            <TableCell>{itemsCount}</TableCell>
+                            <TableCell>
+                              <Button 
+                                size="sm" 
+                                variant="outline"
+                                className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
+                                onClick={() => onSelectOrder(customerOrder)}
+                              >
+                                View Details
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
+                    )}
+                  </TableBody>
+                </Table>
               </div>
 
               {/* Pagination */}

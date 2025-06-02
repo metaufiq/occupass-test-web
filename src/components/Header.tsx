@@ -32,12 +32,6 @@ export default function Header() {
 
   const navigationItems = [
     {
-      title: 'Dashboard',
-      href: '/',
-      icon: BarChart3,
-      description: 'Overview and analytics'
-    },
-    {
       title: 'Customers',
       href: '/customer',
       icon: Users,
