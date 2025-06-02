@@ -34,7 +34,6 @@ interface DataTableProps<TData, TValue> {
   title: string;
   description: string;
   pagination?: {
-    manual?: boolean;
     currentPage?: number;
     totalPages?: number;
     hasNextPage?: boolean;
@@ -64,20 +63,20 @@ const Component = <TData, TValue>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: pagination?.manual ? undefined : getPaginationRowModel(),
+    getPaginationRowModel: pagination ? undefined : getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: pagination?.manual ? undefined : setPaginationState,
+    onPaginationChange: pagination ? undefined : setPaginationState,
     state: {
       sorting,
       columnFilters,
       globalFilter,
-      pagination: pagination?.manual ? undefined : paginationState,
+      pagination: pagination ? undefined : paginationState,
     },
-    manualPagination: pagination?.manual,
+    manualPagination: !!pagination,
     pageCount: pagination?.totalPages,
   });
 
@@ -99,28 +98,28 @@ const Component = <TData, TValue>({
   )?.value as string || 'all';
 
   const handlePageChange = useCallback((page: number) => {
-    if (pagination?.manual && pagination.onPageChange) {
+    if (pagination && pagination.onPageChange) {
       pagination.onPageChange(page);
     } else {
       setPaginationState(prev => ({ ...prev, pageIndex: page - 1 }));
     }
   }, [pagination]);
 
-  const currentPage = useMemo(()=>pagination?.manual 
+  const currentPage = useMemo(()=>pagination
     ? (pagination.currentPage || 1)
     : paginationState.pageIndex + 1, [pagination, paginationState.pageIndex]);
 
-  const totalPages = useMemo(()=>pagination?.manual 
-    ? (pagination.totalPages || 1)
-    : table.getPageCount(), [pagination, table]);
-
-  const canGoPrevious = useMemo(()=>pagination?.manual 
+  const totalPages = pagination ? 
+    (pagination.totalPages || 1) : 
+    table.getPageCount();
+  
+  const canGoPrevious = pagination
     ? currentPage > 1
-    : table.getCanPreviousPage(), [pagination, currentPage, table]);
+    : table.getCanPreviousPage()
 
-  const canGoNext = useMemo(()=>pagination?.manual 
+  const canGoNext = pagination
     ? (pagination.hasNextPage || false)
-    : table.getCanNextPage(), [pagination, table]);
+    : table.getCanNextPage()
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,7 +242,7 @@ const Component = <TData, TValue>({
                 {/* Pagination */}
                 <div className="flex items-center justify-between p-6 border-t border-border bg-muted/30">
                   <div className="text-sm text-muted-foreground">
-                    {pagination?.manual ? (
+                    {pagination ? (
                       <>
                         Showing {title.toLowerCase()} for page{' '}
                         <span className="font-medium text-foreground">{currentPage}</span>
@@ -281,7 +280,7 @@ const Component = <TData, TValue>({
                     </Button>
                     <span className="text-sm text-muted-foreground px-3">
                       Page <span className="font-medium text-foreground">{currentPage}</span>
-                      {!pagination?.manual && (
+                      {!pagination && (
                         <> of <span className="font-medium text-foreground">{totalPages}</span></>
                       )}
                     </span>

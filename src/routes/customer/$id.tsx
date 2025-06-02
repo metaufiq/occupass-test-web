@@ -1,5 +1,27 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { 
+  ArrowLeft, 
+  User, 
+  Phone, 
+  Printer, 
+  Briefcase, 
+  MapPin, 
+  Building, 
+  Globe, 
+  Mail,
+  Package,
+  DollarSign,
+  Calendar,
+  Truck,
+  Hash,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  ShoppingCart
+} from 'lucide-react'
+
+import { formatDateAPI } from '@/lib/utils'
 import { fetchCustomerDetails } from '@/api/customers'
 import { 
   Card, 
@@ -21,7 +43,6 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
-import { ArrowLeft } from 'lucide-react'
 
 export const Route = createFileRoute('/customer/$id')({
   component: RouteComponent,
@@ -29,7 +50,7 @@ export const Route = createFileRoute('/customer/$id')({
 
 function RouteComponent() {
   const { id } = Route.useParams()
-  const navigate = useNavigate()
+  const router = useRouter()
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['customerDetails', id],
@@ -38,7 +59,7 @@ function RouteComponent() {
   })
 
   const handleGoBack = () => {
-    navigate({ to: '..' })
+    router.history.back()
   }
 
 if (isLoading) {
@@ -79,6 +100,7 @@ if (isLoading) {
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
           <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error Loading Customer</AlertTitle>
             <AlertDescription>
               Failed to load customer details. Please try again later.
@@ -98,6 +120,7 @@ if (isLoading) {
       <div className="min-h-screen bg-background p-6">
         <div className="max-w-7xl mx-auto">
           <Alert>
+            <AlertCircle className="h-4 w-4" />
             <AlertTitle>Customer Not Found</AlertTitle>
             <AlertDescription>
               No customer found with ID: {id}
@@ -109,9 +132,21 @@ if (isLoading) {
   }
 
   const getOrderStatus = (order: any) => {
-    if (order?.shippedDate) return { label: 'Shipped', variant: 'default' as const }
-    if (order?.requiredDate && !order?.shippedDate) return { label: 'Pending', variant: 'secondary' as const }
-    return { label: 'Processing', variant: 'outline' as const }
+    if (order?.shippedDate) return { 
+      label: 'Shipped', 
+      variant: 'default' as const, 
+      icon: CheckCircle 
+    }
+    if (order?.requiredDate && !order?.shippedDate) return { 
+      label: 'Pending', 
+      variant: 'secondary' as const, 
+      icon: Clock 
+    }
+    return { 
+      label: 'Processing', 
+      variant: 'outline' as const, 
+      icon: AlertCircle 
+    }
   }
 
   const totalFreight = orders.reduce((sum, order) => sum + (order.order?.freight || 0), 0)
@@ -132,12 +167,19 @@ if (isLoading) {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-2">{customer.companyName}</h1>
-                <p className="text-white/70">Customer ID: {customer.id}</p>
+              <div className="flex items-center gap-3">
+                <Building className="h-8 w-8 text-white/80" />
+                <div>
+                  <h1 className="text-3xl font-bold text-white mb-2">{customer.companyName}</h1>
+                  <p className="text-white/70 flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    Customer ID: {customer.id}
+                  </p>
+                </div>
               </div>
             </div>
-            <Badge variant="secondary" className="bg-white/10 text-white border-white/20">
+            <Badge variant="secondary" className="bg-white/10 text-white border-white/20 flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
               Active Customer
             </Badge>
           </div>
@@ -152,7 +194,7 @@ if (isLoading) {
             <Card className="card-hover">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <div className="w-2 h-6 bg-primary rounded-full mr-3"></div>
+                  <User className="h-5 w-5 mr-3 text-primary" />
                   Contact Information
                 </CardTitle>
                 <CardDescription>
@@ -162,19 +204,31 @@ if (isLoading) {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Contact Name</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Contact Name
+                    </label>
                     <p className="text-foreground">{customer.contactName || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Contact Title</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Briefcase className="h-4 w-4" />
+                      Contact Title
+                    </label>
                     <p className="text-foreground">{customer.contactTitle || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Phone</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Phone
+                    </label>
                     <p className="text-foreground font-mono">{customer.phone || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Fax</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      Fax
+                    </label>
                     <p className="text-foreground font-mono">{customer.fax || 'N/A'}</p>
                   </div>
                 </div>
@@ -185,7 +239,7 @@ if (isLoading) {
             <Card className="card-hover">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <div className="w-2 h-6 bg-secondary rounded-full mr-3"></div>
+                  <MapPin className="h-5 w-5 mr-3 text-secondary" />
                   Address Information
                 </CardTitle>
                 <CardDescription>
@@ -195,23 +249,38 @@ if (isLoading) {
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Street Address</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Street Address
+                    </label>
                     <p className="text-foreground">{customer.address || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">City</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Building className="h-4 w-4" />
+                      City
+                    </label>
                     <p className="text-foreground">{customer.city || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Region/State</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      Region/State
+                    </label>
                     <p className="text-foreground">{customer.region || 'N/A'}</p>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Postal Code</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      Postal Code
+                    </label>
                     <p className="text-foreground font-mono">{customer.postalCode || 'N/A'}</p>
                   </div>
                   <div className="md:col-span-2 space-y-2">
-                    <label className="text-sm font-medium text-muted-foreground">Country</label>
+                    <label className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Country
+                    </label>
                     <p className="text-foreground font-semibold">{customer.country || 'N/A'}</p>
                   </div>
                 </div>
@@ -224,7 +293,7 @@ if (isLoading) {
             <Card className="card-hover">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <div className="w-2 h-6 bg-accent rounded-full mr-3"></div>
+                  <ShoppingCart className="h-5 w-5 mr-3 text-accent-foreground" />
                   Order Summary
                 </CardTitle>
                 <CardDescription>
@@ -234,10 +303,14 @@ if (isLoading) {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Orders</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Package className="h-4 w-4" />
+                      Total Orders
+                    </p>
                     <p className="text-2xl font-bold text-foreground">{orders.length}</p>
                   </div>
-                  <Badge variant="outline" className="text-lg px-3 py-1">
+                  <Badge variant="outline" className="text-lg px-3 py-1 flex items-center gap-2">
+                    <Package className="h-4 w-4" />
                     {orders.length}
                   </Badge>
                 </div>
@@ -246,10 +319,14 @@ if (isLoading) {
                 
                 <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
                   <div>
-                    <p className="text-sm text-muted-foreground">Total Freight</p>
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Total Freight
+                    </p>
                     <p className="text-2xl font-bold text-foreground">${totalFreight.toFixed(2)}</p>
                   </div>
-                  <Badge variant="secondary" className="text-lg px-3 py-1">
+                  <Badge variant="secondary" className="text-lg px-3 py-1 flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
                     ${totalFreight.toFixed(2)}
                   </Badge>
                 </div>
@@ -263,7 +340,7 @@ if (isLoading) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <div className="w-2 h-6 bg-chart-1 rounded-full mr-3"></div>
+                <Package className="h-5 w-5 mr-3 text-chart-1" />
                 Customer Orders
               </CardTitle>
               <CardDescription>
@@ -273,6 +350,7 @@ if (isLoading) {
             <CardContent>
               {orders.length === 0 ? (
                 <div className="text-center py-12">
+                  <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg">No orders found for this customer</p>
                   <p className="text-muted-foreground text-sm mt-2">Orders will appear here once created</p>
                 </div>
@@ -280,13 +358,46 @@ if (isLoading) {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Order Date</TableHead>
-                      <TableHead>Ship To</TableHead>
-                      <TableHead>Destination</TableHead>
-                      <TableHead className="text-right">Freight</TableHead>
-                      <TableHead className="text-center">Items</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="flex items-center gap-2">
+                        <Hash className="h-4 w-4" />
+                        Order ID
+                      </TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          Order Date
+                        </div>
+                      </TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          <User className="h-4 w-4" />
+                          Ship To
+                        </div>
+                      </TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          Destination
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <DollarSign className="h-4 w-4" />
+                          Freight
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <Package className="h-4 w-4" />
+                          Items
+                        </div>
+                      </TableHead>
+                      <TableHead>
+                        <div className="flex items-center gap-2">
+                          <Truck className="h-4 w-4" />
+                          Status
+                        </div>
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -294,32 +405,56 @@ if (isLoading) {
                       const order = customerOrder.order
                       const orderDetails = customerOrder.orderDetails || []
                       const status = getOrderStatus(order)
+                      const StatusIcon = status.icon
                       
                       return (
                         <TableRow key={order?.id || index}>
                           <TableCell className="font-medium">
-                            <Badge variant="outline">#{order?.id}</Badge>
+                            <Badge variant="outline" className="flex items-center gap-1">
+                              <Hash className="h-3 w-3" />
+                              {order?.id}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            {order?.orderDate ? new Date(order.orderDate).toLocaleDateString() : 'N/A'}
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4 text-muted-foreground" />
+                              {order?.orderDate ? formatDateAPI(order.orderDate) : 'N/A'}
+                            </div>
                           </TableCell>
-                          <TableCell>{order?.shipName || 'N/A'}</TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              <div>{order?.shipCity || 'N/A'}</div>
-                              {order?.shipCountry && (
-                                <div className="text-muted-foreground">{order.shipCountry}</div>
-                              )}
+                            <div className="flex items-center gap-2">
+                              <User className="h-4 w-4 text-muted-foreground" />
+                              {order?.shipName || 'N/A'}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm flex items-start gap-2">
+                              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                              <div>
+                                <div>{order?.shipCity || 'N/A'}</div>
+                                {order?.shipCountry && (
+                                  <div className="text-muted-foreground">{order.shipCountry}</div>
+                                )}
+                              </div>
                             </div>
                           </TableCell>
                           <TableCell className="text-right font-mono">
-                            ${(order?.freight || 0).toFixed(2)}
+                            <div className="flex items-center justify-end gap-1">
+                              <DollarSign className="h-3 w-3 text-muted-foreground" />
+                              {(order?.freight || 0).toFixed(2)}
+                            </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            <Badge variant="secondary">{orderDetails.length}</Badge>
+                            <Badge variant="secondary" className="flex items-center gap-1 w-fit mx-auto">
+                              <Package className="h-3 w-3" />
+                              {orderDetails.length}
+                            </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={status.variant}>{status.label}</Badge>
+                            <Badge variant={status.variant} className="flex items-center gap-1 w-fit">
+                              <StatusIcon className="h-3 w-3" />
+                              {status.label}
+                            </Badge>
                           </TableCell>
                         </TableRow>
                       )

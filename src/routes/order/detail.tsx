@@ -10,8 +10,9 @@ import {
 } from 'lucide-react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 
-import useOrderStore from '@/stores/order';
 import type { CustomerOrder } from 'dtos';
+import useOrderStore from '@/stores/order';
+import { formatDateAPI } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,15 +71,6 @@ function RouteComponent() {
     }).format(amount);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const calculateTotal = () => {
     return orderDetails.reduce((total, detail) => {
       return total + (detail.unitPrice * detail.quantity * (1 - detail.discount));
@@ -88,7 +80,7 @@ function RouteComponent() {
   const getOrderStatus = () => {
     if (order.shippedDate) {
       return { label: 'Shipped', variant: 'default' as const };
-    } else if (order.requiredDate && new Date(order.requiredDate) < new Date()) {
+    } else if (order.requiredDate && new Date(formatDateAPI(order.requiredDate)) < new Date(new Date().toLocaleDateString())) {
       return { label: 'Overdue', variant: 'destructive' as const };
     } else {
       return { label: 'Pending', variant: 'secondary' as const };
@@ -140,15 +132,15 @@ function RouteComponent() {
             <CardContent className="space-y-4">
               <div>
                 <span className="text-sm text-muted-foreground block">Order Date</span>
-                <span className="text-foreground font-medium">{formatDate(order.orderDate)}</span>
+                <span className="text-foreground font-medium">{formatDateAPI(order.orderDate)}</span>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground block">Required Date</span>
-                <span className="text-foreground font-medium">{formatDate(order.requiredDate)}</span>
+                <span className="text-foreground font-medium">{formatDateAPI(order.requiredDate)}</span>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground block">Shipped Date</span>
-                <span className="text-foreground font-medium">{formatDate(order.shippedDate)}</span>
+                <span className="text-foreground font-medium">{formatDateAPI(order.shippedDate)}</span>
               </div>
               <div>
                 <span className="text-sm text-muted-foreground block">Employee ID</span>
@@ -189,7 +181,7 @@ function RouteComponent() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">
-                <DollarSign className="w-5 h-5 mr-2 text-accent" />
+                <DollarSign className="w-5 h-5 mr-2 text-accent-foreground" />
                 Payment Summary
               </CardTitle>
             </CardHeader>
