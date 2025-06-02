@@ -55,81 +55,73 @@ export default function Header() {
     <>
       <header 
         className={`
-          fixed top-0 left-0 right-0 z-50 transition-all duration-300 ease-in-out
+          fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out
           ${!isScrolled 
-            ? 'bg-card/95 backdrop-blur-md border-b border-border shadow-lg' 
-            : 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900'
+            ? 'bg-background/80 backdrop-blur-xl border-b border-border/50 shadow-sm' 
+            : 'bg-background/95 backdrop-blur-xl border-b border-border shadow-lg'
           }
         `}
       >
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between h-16">
+        <div className="container mx-auto px-6">
+          <div className="flex items-center justify-between h-20">
             {/* Logo/Brand */}
-            <Link to="/" className="flex items-center space-x-2 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className={`
-                p-2 rounded-lg transition-all duration-300 ease-in-out
-                ${!isScrolled 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-white/10 text-white'
-                }
-                group-hover:scale-110
+                p-3 rounded-xl transition-all duration-300 ease-in-out
+                bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg
+                group-hover:scale-105 group-hover:shadow-xl group-hover:from-primary/90 group-hover:to-primary/80
               `}>
-                <Building2 className="h-6 w-6" />
+                <Building2 className="h-7 w-7" />
               </div>
-              <span className={`
-                font-bold text-xl transition-colors duration-300
-                ${!isScrolled ? 'text-foreground' : 'text-white'}
-              `}>
+              <span className="font-bold text-2xl bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 ERP Suite
               </span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <NavigationMenu className="hidden md:flex">
-              <NavigationMenuList>
-                {navigationItems.map((item) => (
-                  <NavigationMenuItem key={item.href}>
-                    <Link to={item.href}>
-                      <NavigationMenuLink 
-                        className={`
-                          group inline-flex h-10 w-max items-center justify-center 
-                          rounded-md px-4 py-2 text-sm font-medium transition-colors 
-                          hover:bg-accent hover:text-accent-foreground 
-                          focus:bg-accent focus:text-accent-foreground 
-                          focus:outline-none disabled:pointer-events-none 
-                          disabled:opacity-50 data-[active]:bg-accent/50 
-                          data-[state=open]:bg-accent/50 space-x-2
-                          ${!isScrolled 
-                            ? 'text-foreground hover:text-accent-foreground' 
-                            : 'text-white/90 hover:text-white hover:bg-white/10'
-                          }
-                        `}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </NavigationMenuLink>
-                    </Link>
-                  </NavigationMenuItem>
-                ))}
-              </NavigationMenuList>
-            </NavigationMenu>
+            {/* Right Side - Navigation + Actions */}
+            <div className="flex items-center space-x-6">
+              {/* Desktop Navigation - Moved to the right */}
+              <NavigationMenu className="hidden md:flex">
+                <NavigationMenuList className="space-x-2">
+                  {navigationItems.map((item) => (
+                    <NavigationMenuItem key={item.href}>
+                      <Link to={item.href}>
+                        <NavigationMenuLink 
+                          className={`
+                            group inline-flex h-15 items-center justify-center 
+                            rounded-xl px-5 py-2 text-sm font-medium transition-all duration-200
+                            text-muted-foreground
+                            focus:text-foreground focus:outline-none 
+                            focus:ring-2 focus:ring-ring focus:ring-offset-2
+                            disabled:pointer-events-none disabled:opacity-50 
+                            space-x-3 relative
+                            hover:after:scale-x-100 after:scale-x-0 after:transition-transform after:duration-200
+                            after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 
+                            after:h-0.5 after:w-4/5 after:bg-foreground after:rounded-full
+                            data-[active]:text-primary data-[active]:after:scale-x-100 data-[active]:after:bg-primary
+                            active:scale-95
+                          `}
+                        >
+                          <item.icon className="h-5 w-5 transition-transform group-hover:scale-110 hover:text-accent-foreground" />
+                          <span className="font-medium">{item.title}</span>
+                        </NavigationMenuLink>
+                      </Link>
+                    </NavigationMenuItem>
+                  ))}
+                </NavigationMenuList>
+              </NavigationMenu>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center space-x-2">
               {/* Mobile Menu Button */}
               <Button
                 variant="ghost"
                 size="sm"
-                className={`
-                  md:hidden transition-colors duration-300
-                  ${!isScrolled 
-                    ? 'text-foreground hover:bg-accent' 
-                    : 'text-white/90 hover:text-white hover:bg-white/10'
-                  }
-                `}
+                className="md:hidden h-11 w-11 rounded-xl transition-all duration-200 text-muted-foreground hover:text-foreground hover:scale-105 active:scale-95"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               >
-                {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMobileMenuOpen ? 
+                  <X className="h-5 w-5" /> : 
+                  <Menu className="h-5 w-5" />
+                }
               </Button>
             </div>
           </div>
@@ -137,29 +129,22 @@ export default function Header() {
           {/* Mobile Menu */}
           <div className={`
             md:hidden overflow-hidden transition-all duration-300 ease-in-out
-            ${isMobileMenuOpen ? 'max-h-64 opacity-100' : 'max-h-0 opacity-0'}
+            ${isMobileMenuOpen ? 'max-h-80 opacity-100 pb-6' : 'max-h-0 opacity-0'}
           `}>
-            <div className="py-4 space-y-2 border-t border-border/50">
+            <div className="pt-4 space-y-1 border-t border-border/50">
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
                   to={item.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`
-                    flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
-                    ${!isScrolled 
-                      ? 'text-foreground hover:bg-accent' 
-                      : 'text-white/90 hover:text-white hover:bg-white/10'
-                    }
-                  `}
+                  className="flex items-center space-x-4 px-4 py-4 rounded-xl transition-all duration-200 text-muted-foreground hover:text-foreground hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  <item.icon className="h-5 w-5" />
-                  <div>
-                    <div className="font-medium">{item.title}</div>
-                    <div className={`
-                      text-sm 
-                      ${!isScrolled ? 'text-muted-foreground' : 'text-white/70'}
-                    `}>
+                  <div className="p-2 rounded-lg bg-muted transition-colors">
+                    <item.icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-base">{item.title}</div>
+                    <div className="text-sm text-muted-foreground mt-0.5">
                       {item.description}
                     </div>
                   </div>
@@ -171,7 +156,7 @@ export default function Header() {
       </header>
 
       {/* Header Spacer */}
-      <div className="h-16"></div>
+      <div className="h-20"></div>
     </>
   )
 }

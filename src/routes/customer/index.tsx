@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ArrowUpDown, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -261,9 +261,13 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
 };
 
 function RouteComponent() {
+  const navigate = useNavigate();
   return CustomerList({
     onSelectCustomer: (customer) => {
-      console.log(`Selected customer: ${customer.contactName} from ${customer.companyName}`);
+      // Navigate to the customer details page
+      navigate({
+        to: `/customer/${customer.id}`,
+      });
       
       // Handle customer selection, e.g., navigate to customer details page
     }
