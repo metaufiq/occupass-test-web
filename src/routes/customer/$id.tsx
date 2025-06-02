@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCustomerDetails } from '@/api/customers'
 import { 
@@ -17,9 +17,11 @@ import {
   TableRow 
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import { ArrowLeft } from 'lucide-react'
 
 export const Route = createFileRoute('/customer/$id')({
   component: RouteComponent,
@@ -27,12 +29,17 @@ export const Route = createFileRoute('/customer/$id')({
 
 function RouteComponent() {
   const { id } = Route.useParams()
+  const navigate = useNavigate()
   
   const { data, isLoading, error } = useQuery({
     queryKey: ['customerDetails', id],
     queryFn: () => fetchCustomerDetails({ id }),
     enabled: !!id,
   })
+
+  const handleGoBack = () => {
+    navigate({ to: '..' })
+  }
 
 if (isLoading) {
   return (
@@ -41,9 +48,12 @@ if (isLoading) {
       <div className="gradient-bg border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
-            <div>
-              <Skeleton className="h-8 w-48 mb-2" />
-              <Skeleton className="h-4 w-32" />
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-10 w-24" />
+              <div>
+                <Skeleton className="h-8 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </div>
             </div>
             <Skeleton className="h-6 w-24" />
           </div>
@@ -112,9 +122,20 @@ if (isLoading) {
       <div className="gradient-bg border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{customer.companyName}</h1>
-              <p className="text-white/70">Customer ID: {customer.id}</p>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleGoBack}
+                className="text-white hover:bg-white/10 hover:text-white border-white/20"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-2">{customer.companyName}</h1>
+                <p className="text-white/70">Customer ID: {customer.id}</p>
+              </div>
             </div>
             <Badge variant="secondary" className="bg-white/10 text-white border-white/20">
               Active Customer

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -13,12 +13,12 @@ import {
   ShoppingCart, 
   Menu, 
   X,
-  BarChart3,
 } from 'lucide-react'
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,6 +44,11 @@ export default function Header() {
       description: 'Track and manage orders'
     }
   ]
+
+  // Helper function to check if current route matches navigation item
+  const isActiveRoute = (href: string) => {
+    return location.pathname === href || location.pathname.startsWith(href + '/')
+  }
 
   return (
     <>
@@ -74,34 +79,37 @@ export default function Header() {
 
             {/* Right Side - Navigation + Actions */}
             <div className="flex items-center space-x-6">
-              {/* Desktop Navigation - Moved to the right */}
+              {/* Desktop Navigation  */}
               <NavigationMenu className="hidden md:flex">
                 <NavigationMenuList className="space-x-2">
-                  {navigationItems.map((item) => (
-                    <NavigationMenuItem key={item.href}>
-                      <Link to={item.href}>
-                        <NavigationMenuLink 
-                          className={`
-                            group inline-flex h-15 items-center justify-center 
-                            rounded-xl px-5 py-2 text-sm font-medium transition-all duration-200
-                            text-muted-foreground
-                            focus:text-foreground focus:outline-none 
-                            focus:ring-2 focus:ring-ring focus:ring-offset-2
-                            disabled:pointer-events-none disabled:opacity-50 
-                            space-x-3 relative
-                            hover:after:scale-x-100 after:scale-x-0 after:transition-transform after:duration-200
-                            after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 
-                            after:h-0.5 after:w-4/5 after:bg-foreground after:rounded-full
-                            data-[active]:text-primary data-[active]:after:scale-x-100 data-[active]:after:bg-primary
-                            active:scale-95
-                          `}
-                        >
-                          <item.icon className="h-5 w-5 transition-transform group-hover:scale-110 hover:text-accent-foreground" />
-                          <span className="font-medium">{item.title}</span>
-                        </NavigationMenuLink>
-                      </Link>
-                    </NavigationMenuItem>
-                  ))}
+                  {navigationItems.map((item) => {
+                    const isActive = isActiveRoute(item.href)
+                    
+                    return (
+                      <NavigationMenuItem key={item.href}>
+                        <Link to={item.href}>
+                          <NavigationMenuLink 
+                            className={`
+                              group inline-flex items-center justify-center 
+                              py-2 text-sm font-medium transition-all duration-200
+                              relative
+
+                              hover:after:scale-x-100 after:transition-transform after:duration-200
+                              after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 
+                              after:h-0.5 after:w-4/5 after:rounded-full
+                              active:scale-95
+                              ${isActive 
+                                ? 'text-primary bg-primary/10 after:scale-x-100 after:bg-primary shadow-sm' 
+                                : 'text-muted-foreground hover:text-foreground after:scale-x-0 after:bg-foreground hover:bg-muted/50'
+                              }
+                            `}
+                          >
+                            <span className="font-medium">{item.title}</span>
+                          </NavigationMenuLink>
+                        </Link>
+                      </NavigationMenuItem>
+                    )
+                  })}
                 </NavigationMenuList>
               </NavigationMenu>
 
@@ -126,24 +134,40 @@ export default function Header() {
             ${isMobileMenuOpen ? 'max-h-80 opacity-100 pb-6' : 'max-h-0 opacity-0'}
           `}>
             <div className="pt-4 space-y-1 border-t border-border/50">
-              {navigationItems.map((item) => (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center space-x-4 px-4 py-4 rounded-xl transition-all duration-200 text-muted-foreground hover:text-foreground hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <div className="p-2 rounded-lg bg-muted transition-colors">
-                    <item.icon className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-base">{item.title}</div>
-                    <div className="text-sm text-muted-foreground mt-0.5">
-                      {item.description}
+              {navigationItems.map((item) => {
+                const isActive = isActiveRoute(item.href)
+                
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`
+                      flex items-center space-x-4 px-4 py-4 rounded-xl transition-all duration-200 
+                      hover:scale-[1.02] active:scale-[0.98] relative
+                      ${isActive 
+                        ? 'text-primary bg-primary/10 shadow-sm' 
+                        : 'text-muted-foreground hover:text-foreground'
+                      }
+                    `}
+                  >
+                    <div className={`
+                      p-2 rounded-lg transition-colors
+                      ${isActive ? 'bg-primary/20' : 'bg-muted'}
+                    `}>
+                      <item.icon className="h-5 w-5" />
                     </div>
-                  </div>
-                </Link>
-              ))}
+                    <div className="flex-1">
+                      <div className="font-semibold text-base flex items-center gap-2">
+                        {item.title}
+                      </div>
+                      <div className="text-sm text-muted-foreground mt-0.5">
+                        {item.description}
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
             </div>
           </div>
         </div>

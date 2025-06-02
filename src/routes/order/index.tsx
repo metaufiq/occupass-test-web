@@ -200,7 +200,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search orders..."
+                  placeholder="Search orders by order id or customer..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
@@ -282,7 +282,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
                                 <div className="text-muted-foreground text-sm">${order.freight.toFixed(2)}</div>
                               </TableCell>
                               <TableCell className="py-4">
-                                <Badge className={getStatusColor(status)}>
+                                <Badge className={`${getStatusColor(status)} w-24`}>
                                   {status}
                                 </Badge>
                               </TableCell>
