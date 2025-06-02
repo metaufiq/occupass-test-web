@@ -139,8 +139,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
 
   useEffect(() => {
     setSelectedCustomerOrder(null); 
-  }
-  , []);
+  }, []);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -176,7 +175,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
 
   const SortableTableHead = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <TableHead 
-      className="cursor-pointer hover:text-primary transition-colors select-none"
+      className="text-card-foreground cursor-pointer hover:text-primary font-semibold text-sm uppercase tracking-wider transition-colors"
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center">
@@ -187,147 +186,164 @@ const OrderList = ({ onSelectOrder }: Props) => {
   );
 
   return (
-    <div className="p-6 space-y-6 bg-background min-h-screen">
-      <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">Orders</h2>
-        <p className="text-muted-foreground">Track and manage customer orders</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <div className="p-6 space-y-6">
+        <div className="mb-8">
+          <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Orders</h2>
+          <p className="text-muted-foreground text-lg">Track and manage customer orders with ease</p>
+        </div>
 
-      {/* Search and Filter Controls */}
-      <Card className="bg-card border-border card-hover">
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search orders..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
+        {/* Search and Filter Controls */}
+        <Card className="card-hover bg-card border-border shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search orders..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-48 bg-input border-border text-foreground">
+                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Processing">Processing</SelectItem>
+                  <SelectItem value="Shipped">Shipped</SelectItem>
+                  <SelectItem value="Delivered">Delivered</SelectItem>
+                  <SelectItem value="Cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-48 bg-input border-border text-foreground">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Processing">Processing</SelectItem>
-                <SelectItem value="Shipped">Shipped</SelectItem>
-                <SelectItem value="Delivered">Delivered</SelectItem>
-                <SelectItem value="Cancelled">Cancelled</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Orders Table */}
-      <Card className="bg-card border-border card-hover">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="text-muted-foreground">Loading orders...</div>
-            </div>
-          ) : (
-            <>
-              <div className="rounded-md border border-border">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-border hover:bg-muted/50">
-                      <SortableTableHead field="id">Order ID</SortableTableHead>
-                      <SortableTableHead field="customerId">Customer</SortableTableHead>
-                      <SortableTableHead field="amount">Amount</SortableTableHead>
-                      <SortableTableHead field="freight">Freight</SortableTableHead>
-                      <TableHead>Status</TableHead>
-                      <SortableTableHead field="orderDate">Date</SortableTableHead>
-                      <SortableTableHead field="items">Items</SortableTableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                          No orders found
-                        </TableCell>
+        {/* Orders Table */}
+        <Card className="card-hover bg-card border-border shadow-xl">
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="p-12 text-center">
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4"></div>
+                <div className="text-muted-foreground text-lg">Loading orders...</div>
+              </div>
+            ) : (
+              <>
+                <div className="rounded-md border-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-border bg-muted/50 hover:bg-muted/50">
+                        <SortableTableHead field="id">Order ID</SortableTableHead>
+                        <SortableTableHead field="customerId">Customer</SortableTableHead>
+                        <SortableTableHead field="amount">Amount</SortableTableHead>
+                        <SortableTableHead field="freight">Freight</SortableTableHead>
+                        <TableHead className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Status</TableHead>
+                        <SortableTableHead field="orderDate">Date</SortableTableHead>
+                        <SortableTableHead field="items">Items</SortableTableHead>
+                        <TableHead className="text-card-foreground font-semibold text-sm uppercase tracking-wider">Actions</TableHead>
                       </TableRow>
-                    ) : (
-                      filteredOrders.map((customerOrder) => {
-                        const order = customerOrder.order;
-                        const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
-                        const itemsCount = getItemsCount(customerOrder.orderDetails);
-                        const status = getOrderStatus(order);
-                        
-                        return (
-                          <TableRow 
-                            key={order.id} 
-                            className="border-border hover:bg-muted/30 transition-colors"
-                          >
-                            <TableCell className="font-medium">{order.id}</TableCell>
-                            <TableCell>{order.customerId}</TableCell>
-                            <TableCell>${orderAmount.toFixed(2)}</TableCell>
-                            <TableCell>${order.freight.toFixed(2)}</TableCell>
-                            <TableCell>
-                              <Badge className={getStatusColor(status)}>
-                                {status}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>{formatDateAPI(order.orderDate)}</TableCell>
-                            <TableCell>{itemsCount}</TableCell>
-                            <TableCell>
-                              <Button 
-                                size="sm" 
-                                variant="outline"
-                                className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                                onClick={() => onSelectOrder(customerOrder)}
-                              >
-                                View Details
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOrders.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                            No orders found
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredOrders.map((customerOrder, index) => {
+                          const order = customerOrder.order;
+                          const orderAmount = calculateOrderAmount(customerOrder.orderDetails);
+                          const itemsCount = getItemsCount(customerOrder.orderDetails);
+                          const status = getOrderStatus(order);
+                          
+                          return (
+                            <TableRow 
+                              key={order.id} 
+                              className={`hover:bg-muted/30 transition-all duration-200 border-border ${
+                                index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
+                              }`}
+                            >
+                              <TableCell className="py-4">
+                                <div className="text-foreground font-medium text-base">{order.id}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-muted-foreground text-sm font-medium">{order.customerId}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-foreground text-sm font-medium">${orderAmount.toFixed(2)}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-muted-foreground text-sm">${order.freight.toFixed(2)}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <Badge className={getStatusColor(status)}>
+                                  {status}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-muted-foreground text-sm">{formatDateAPI(order.orderDate)}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <div className="text-foreground text-sm font-medium">{itemsCount}</div>
+                              </TableCell>
+                              <TableCell className="py-4">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline"
+                                  className="border-primary/30 text-primary hover:text-primary-foreground hover:bg-primary transition-all duration-200 font-medium"
+                                  onClick={() => onSelectOrder(customerOrder)}
+                                >
+                                  View Details
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between p-4 border-t border-border">
-                <div className="text-sm text-muted-foreground">
-                  Showing orders for page {currentPage}
+                {/* Pagination */}
+                <div className="flex items-center justify-between p-6 border-t border-border bg-muted/30">
+                  <div className="text-sm text-muted-foreground">
+                    Showing orders for page <span className="font-medium text-foreground">{currentPage}</span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                      onClick={handlePreviousPage}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm text-muted-foreground px-3">
+                      Page <span className="font-medium text-foreground">{currentPage}</span>
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                      onClick={handleNextPage}
+                      disabled={!hasMorePages}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                    onClick={handlePreviousPage}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    Page {currentPage}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-accent transition-colors"
-                    onClick={handleNextPage}
-                    disabled={!hasMorePages}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

@@ -104,16 +104,16 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search customers by name, company, city, or phone..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 h-12 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
+                  className="pl-10 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <Select value={countryFilter} onValueChange={setCountryFilter}>
-                <SelectTrigger className="w-56 h-12 bg-input border-border text-foreground">
+                <SelectTrigger className="w-56 bg-input border-border text-foreground">
                   <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
                   <SelectValue placeholder="Filter by country" />
                 </SelectTrigger>
@@ -254,11 +254,9 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
                       disabled={currentPage === 1}
                     >
                       <ChevronLeft className="h-4 w-4" />
-                      Previous
                     </Button>
                     <span className="text-sm text-muted-foreground px-3">
-                      Page <span className="font-medium text-foreground">{currentPage}</span> of{' '}
-                      <span className="font-medium text-foreground">{totalPages}</span>
+                      Page <span className="font-medium text-foreground">{currentPage}</span>
                     </span>
                     <Button
                       variant="outline"
@@ -267,7 +265,6 @@ const CustomerList = ({ onSelectCustomer }:{onSelectCustomer:(customer:Customer)
                       onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
                       <ChevronRight className="h-4 w-4" />
                     </Button>
                   </div>
