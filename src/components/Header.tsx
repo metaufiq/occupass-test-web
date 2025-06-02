@@ -74,7 +74,7 @@ export default function Header() {
                 <Building2 className="h-7 w-7" />
               </div>
               <span className="font-bold text-2xl bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                ERP Suite
+                ERPia
               </span>
             </Link>
 

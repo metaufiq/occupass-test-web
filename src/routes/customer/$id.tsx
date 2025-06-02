@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCustomerDetails } from '@/api/customers'
-import { CustomerDetailsResponse } from 'dtos'
 import { 
   Card, 
   CardContent, 
