@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { type ColumnDef } from '@tanstack/react-table';
+import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 
 import { CustomerOrder, Order, OrderDetail } from 'dtos';
 import { formatDateAPI } from '@/lib/utils';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import useOrderStore from '@/stores/order';
 import DataTable from '@/components/DataTable';
+import ControlBar from '@/components/ControlBar';
 
 type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
@@ -58,6 +59,11 @@ const OrderList = ({ onSelectOrder }: Props) => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMorePages, setHasMorePages] = useState(true);
+  
+  // Search and filter state
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columns: ColumnDef<CustomerOrder>[] = useMemo(() => [
     {
@@ -167,7 +173,36 @@ const OrderList = ({ onSelectOrder }: Props) => {
     setSelectedCustomerOrder(null); 
   }, [setSelectedCustomerOrder]);
 
-  // Status filter options
+  // Handle search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value);
+    setCurrentPage(1); // Reset to first page when searching
+  }, []);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((value: string) => {
+    setSelectedStatus(value);
+    setCurrentPage(1); // Reset to first page when filtering
+    
+    // Update column filters for the table
+    if (value === 'all') {
+      setColumnFilters([]);
+    } else {
+      setColumnFilters([
+        {
+          id: 'status',
+          value: value,
+        },
+      ]);
+    }
+  }, []);
+
+  // Handle pagination
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  // Status filter options for ControlBar
   const statusFilterOptions = {
     label: 'Statuses',
     value: 'status',
@@ -182,21 +217,39 @@ const OrderList = ({ onSelectOrder }: Props) => {
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={orders}
-      loading={loading}
-      title="Orders"
-      description="Track and manage customer orders with ease"
-      searchPlaceholder="Search orders by order id or customer..."
-      filterOptions={statusFilterOptions}
-      pagination={{
-        manual: true,
-        currentPage,
-        hasNextPage: hasMorePages,
-        onPageChange: setCurrentPage,
-      }}
-    />
+    <div className="space-y-6 p-6">
+
+      <div className="mb-8">
+        <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Orders</h2>
+        <p className="text-muted-foreground text-lg">Track and manage customer orders with ease</p>
+      </div>
+      {/* Control Bar for search and filters */}
+      <ControlBar
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search orders by order ID or customer..."
+        filterOptions={statusFilterOptions}
+        currentFilterValue={selectedStatus}
+        onFilterChange={handleFilterChange}
+      />
+
+      {/* Data Table */}
+      <DataTable
+        columns={columns}
+        data={orders}
+        loading={loading}
+        title="Orders"
+        columnFilters={columnFilters}
+        onColumnFiltersChange={setColumnFilters}
+        globalFilter={searchValue}
+        onGlobalFilterChange={setSearchValue}
+        pagination={{
+          currentPage,
+          hasNextPage: hasMorePages,
+          onPageChange: handlePageChange,
+        }}
+      />
+    </div>
   );
 };
 

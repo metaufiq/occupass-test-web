@@ -1,20 +1,27 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect, useState, useMemo } from 'react';
-import { type ColumnDef } from '@tanstack/react-table';
+import { useEffect, useState, useMemo, useCallback } from 'react';
+import { type ColumnDef, type ColumnFiltersState } from '@tanstack/react-table';
 
 import { Customer } from 'dtos';
 import { fetchAllCustomers } from '@/api/customers';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
+import ControlBar from '@/components/ControlBar';
 
-export const Route = createFileRoute('/customer/')({
-  component: RouteComponent,
-});
+interface Props {
+  onSelectCustomer: (customer: Customer) => void;
+}
 
 // Customer List Component
-const CustomerList = ({ onSelectCustomer }: { onSelectCustomer: (customer: Customer) => void }) => {
+const CustomerList = ({ onSelectCustomer }: Props) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
+  
+  // Search and filter state
+  const [searchValue, setSearchValue] = useState('');
+  const [selectedCountry, setSelectedCountry] = useState('all');
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const columns: ColumnDef<Customer>[] = useMemo(() => [
     {
       accessorKey: 'contactName',
@@ -92,6 +99,28 @@ const CustomerList = ({ onSelectCustomer }: { onSelectCustomer: (customer: Custo
     });
   }, []);
 
+  // Handle search changes
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchValue(value);
+  }, []);
+
+  // Handle filter changes
+  const handleFilterChange = useCallback((value: string) => {
+    setSelectedCountry(value);
+    
+    // Update column filters for the table
+    if (value === 'all') {
+      setColumnFilters([]);
+    } else {
+      setColumnFilters([
+        {
+          id: 'country',
+          value: value,
+        },
+      ]);
+    }
+  }, []);
+
   // Get unique countries for filter dropdown
   const uniqueCountries = useMemo(() => {
     return [...new Set(customers.map(c => c.country).filter(Boolean))]
@@ -99,7 +128,7 @@ const CustomerList = ({ onSelectCustomer }: { onSelectCustomer: (customer: Custo
       .map(country => ({ label: country, value: country }));
   }, [customers]);
 
-  // Country filter options
+  // Country filter options for ControlBar
   const countryFilterOptions = uniqueCountries.length > 0 ? {
     label: 'Countries',
     value: 'country',
@@ -108,15 +137,35 @@ const CustomerList = ({ onSelectCustomer }: { onSelectCustomer: (customer: Custo
   } : undefined;
 
   return (
-    <DataTable
-      columns={columns}
-      data={customers}
-      loading={loading}
-      title="Customers"
-      description="Manage your customer database with ease"
-      searchPlaceholder="Search customers by name, company, city, or phone..."
-      filterOptions={countryFilterOptions}
-    />
+    <div className="space-y-6 p-6">
+      
+      <div className="mb-8">
+        <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Customers</h2>
+        <p className="text-muted-foreground text-lg">Manage your customer database with ease</p>
+      </div>
+
+      {/* Control Bar for search and filters */}
+      <ControlBar
+        searchValue={searchValue}
+        onSearchChange={handleSearchChange}
+        searchPlaceholder="Search customers by name, company, city, or phone..."
+        filterOptions={countryFilterOptions}
+        currentFilterValue={selectedCountry}
+        onFilterChange={handleFilterChange}
+      />
+
+      {/* Data Table */}
+      <DataTable
+        columns={columns}
+        data={customers}
+        loading={loading}
+        title="Customers"
+        columnFilters={columnFilters}
+        onColumnFiltersChange={setColumnFilters}
+        globalFilter={searchValue}
+        onGlobalFilterChange={setSearchValue}
+      />
+    </div>
   );
 };
 
@@ -131,3 +180,7 @@ function RouteComponent() {
     }
   });
 }
+
+export const Route = createFileRoute('/customer/')({
+  component: RouteComponent,
+});
