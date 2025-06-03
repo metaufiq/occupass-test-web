@@ -15,15 +15,12 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="space-y-3">
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="p-3 rounded transition-all duration-300 ease-in-out bg-gradient-to-br from-primary to-primary/90 text-primary-foreground shadow-lg group-hover:scale-105 group-hover:shadow-xl group-hover:from-primary/90 group-hover:to-primary/80">
-                <Building2 className="h-3 w-3 text-white" />
-              </div>
-              <span className="font-bold text-2xl bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              <span className="font-bold text-xl bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
                 ERPia
               </span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Enterprise resource planning made simple. Integrate customers, inventory, and operations in one powerful platform designed for growing businesses.
+              Enterprise resource planning made simple. Integrate customers and orders in one powerful platform designed for growing businesses.
             </p>
           </div>
           
