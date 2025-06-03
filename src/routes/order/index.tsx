@@ -218,7 +218,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
   };
 
   return (
-    <div className="space-y-6 p-6 min-h-screen">
+    <div className="space-y-6 p-6">
       <PageHeader title="Orders" desc="Track and manage customer orders with ease" />
       {!loading && <ControlBar
         searchValue={searchValue}
