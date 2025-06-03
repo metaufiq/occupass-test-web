@@ -1,27 +1,21 @@
-import { useMemo } from 'react';
 import { 
   ArrowLeft, 
   FileText, 
   MapPin, 
-  DollarSign, 
-  ShoppingBag,
+  DollarSign,
   Calendar,
-  Package,
-  Truck,
-  Hash,
-  Percent
+  Truck
 } from 'lucide-react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
-import { type ColumnDef } from '@tanstack/react-table'
 
-import type { CustomerOrder, OrderDetail } from 'dtos';
+import type { CustomerOrder } from 'dtos';
 import useOrderStore from '@/stores/order';
 import { formatDateAPI } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import DataTable from '@/components/DataTable';
+import OrderItems from '@/components/order/detail/OrderItems';
 
 export const Route = createFileRoute('/order/detail')({
   component: RouteComponent,
@@ -54,97 +48,6 @@ function RouteComponent() {
     }, 0);
   };
 
-  const calculateItemTotal = (detail: OrderDetail) => {
-    return detail.unitPrice * detail.quantity * (1 - detail.discount);
-  };
-
-  // Define columns for order details DataTable
-  const orderDetailColumns: ColumnDef<OrderDetail>[] = useMemo(() => [
-    {
-      accessorKey: 'productId',
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4" />
-          Product ID
-        </div>
-      ),
-      cell: ({ row }) => (
-        <Badge variant="outline" className="flex items-center gap-1 w-fit font-mono">
-          <Hash className="h-3 w-3" />
-          {row.original.productId}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'unitPrice',
-      header: () => (
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          Unit Price
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1 font-mono">
-          <DollarSign className="h-3 w-3 text-muted-foreground" />
-          {row.original.unitPrice.toFixed(2)}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'quantity',
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Package className="h-4 w-4" />
-          Quantity
-        </div>
-      ),
-      cell: ({ row }) => (
-        <Badge variant="secondary" className="flex items-center gap-1 w-fit">
-          <Package className="h-3 w-3" />
-          {row.original.quantity}
-        </Badge>
-      ),
-    },
-    {
-      accessorKey: 'discount',
-      header: () => (
-        <div className="flex items-center gap-2">
-          <Percent className="h-4 w-4" />
-          Discount
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center gap-1">
-          {row.original.discount > 0 ? (
-            <Badge variant="outline" className="flex items-center gap-1">
-              {(row.original.discount * 100).toFixed(0)}
-              <Percent className="h-3 w-3 text-muted-foreground" />
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground text-sm">None</span>
-          )}
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'total',
-      header: () => (
-        <div className="flex items-center justify-end gap-2">
-          <DollarSign className="h-4 w-4" />
-          Total
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="text-right font-mono font-medium">
-          <div className="flex items-center justify-start gap-1">
-            <DollarSign className="h-3 w-3 text-muted-foreground" />
-            {calculateItemTotal(row.original).toFixed(2)}
-          </div>
-        </div>
-      ),
-    },
-  ], []);
-
   if (!selectedCustomerOrder?.order) {
     return (
       <div className="min-h-screen bg-background p-6">
@@ -173,9 +76,14 @@ function RouteComponent() {
   const { order, orderDetails } = selectedCustomerOrder;
 
   const getOrderStatus = () => {
+    const requiredDate = new Date(formatDateAPI(order.requiredDate))
+    const currentDate = new Date(new Date().toLocaleDateString())
     if (order.shippedDate) {
       return { label: 'Shipped', variant: 'default' as const };
-    } else if (order.requiredDate && new Date(formatDateAPI(order.requiredDate)) < new Date(new Date().toLocaleDateString())) {
+    } else if (
+      order.requiredDate &&
+      requiredDate < currentDate
+    ) {
       return { label: 'Overdue', variant: 'destructive' as const };
     } else {
       return { label: 'Pending', variant: 'secondary' as const };
@@ -300,36 +208,10 @@ function RouteComponent() {
           </Card>
         </div>
 
-        {/* Order Items DataTable */}
-        <div className="mb-8">
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-2">
-              <ShoppingBag className="h-6 w-6 text-chart-1" />
-              <h2 className="text-2xl font-bold text-foreground">Order Items</h2>
-            </div>
-            <p className="text-muted-foreground">
-              Complete list of items in order #{order.id} ({orderDetails.length} items)
-            </p>
-          </div>
-          
-          {orderDetails.length === 0 ? (
-            <Card>
-              <CardContent>
-                <div className="text-center py-12">
-                  <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground text-lg">No items found for this order</p>
-                  <p className="text-muted-foreground text-sm mt-2">Order items will appear here once added</p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <DataTable
-              columns={orderDetailColumns}
-              data={orderDetails}
-              title="Items"
-            />
-          )}
-        </div>
+        <OrderItems
+          orderDetails={orderDetails} 
+          orderId={order.id}
+        />
       </div>
     </div>
   );
