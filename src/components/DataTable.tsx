@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table';
 import { ArrowUpDown, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -39,15 +40,15 @@ interface DataTableProps<TData, TValue> {
   hiddenColumns?: string[];
 }
 
-const  renderSortIcon = (sortDirection: false | 'asc' | 'desc') => {
-    if (sortDirection === 'asc') {
-      return <ArrowUp className="ml-2 h-4 w-4 text-primary" />;
-    } else if (sortDirection === 'desc') {
-      return <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
-    } else {
-      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
-    }
-  };
+const renderSortIcon = (sortDirection: false | 'asc' | 'desc') => {
+  if (sortDirection === 'asc') {
+    return <ArrowUp className="ml-2 h-4 w-4 text-primary" />;
+  } else if (sortDirection === 'desc') {
+    return <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
+  } else {
+    return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+  }
+};
 
 const Component = <TData, TValue>({
   columns,
@@ -134,8 +135,6 @@ const Component = <TData, TValue>({
     ? (pagination.hasNextPage || false)
     : table.getCanNextPage();
 
-
-
   return (
     <Card className="card-hover bg-card border-border shadow-xl">
       <CardContent className="p-0">
@@ -154,19 +153,16 @@ const Component = <TData, TValue>({
                       {headerGroup.headers.map((header) => {
                         const sortDirection = header.column.getIsSorted();
                         const isActiveSorted = sortDirection !== false;
+                        const canSort = header.column.getCanSort();
                         
                         return (
                           <TableHead
                             key={header.id}
-                            className={`text-card-foreground font-semibold text-sm uppercase tracking-wider transition-all duration-200 ${
-                              header.column.getCanSort()
-                                ? 'cursor-pointer hover:text-primary hover:bg-muted/70'
-                                : ''
-                            } ${
-                              isActiveSorted 
-                                ? 'text-primary bg-primary/5 border-l-2 border-l-primary' 
-                                : ''
-                            }`}
+                            className={cn(
+                              "text-card-foreground font-semibold text-sm uppercase tracking-wider transition-all duration-200",
+                              canSort && "cursor-pointer hover:text-primary hover:bg-muted/70",
+                              isActiveSorted && "text-primary bg-primary/5 border-l-2 border-l-primary"
+                            )}
                             onClick={header.column.getToggleSortingHandler()}
                           >
                             <div className="flex items-center">
@@ -176,7 +172,7 @@ const Component = <TData, TValue>({
                                     header.column.columnDef.header,
                                     header.getContext()
                                   )}
-                              {header.column.getCanSort() && renderSortIcon(sortDirection)}
+                              {canSort && renderSortIcon(sortDirection)}
                             </div>
                           </TableHead>
                         );
@@ -190,9 +186,10 @@ const Component = <TData, TValue>({
                       <TableRow
                         key={row.id}
                         data-state={row.getIsSelected() && "selected"}
-                        className={`hover:bg-muted/30 transition-all duration-200 border-border ${
-                          index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
-                        }`}
+                        className={cn(
+                          "hover:bg-muted/30 transition-all duration-200 border-border",
+                          index % 2 === 0 ? "bg-card" : "bg-muted/10"
+                        )}
                       >
                         {row.getVisibleCells().map((cell) => {
                           const isColumnSorted = cell.column.getIsSorted() !== false;
@@ -200,9 +197,10 @@ const Component = <TData, TValue>({
                           return (
                             <TableCell 
                               key={cell.id} 
-                              className={`py-4 transition-all duration-200 ${
-                                isColumnSorted ? 'bg-primary/5 border-l-2 border-l-primary/20' : ''
-                              }`}
+                              className={cn(
+                                "py-4 transition-all duration-200",
+                                isColumnSorted && "bg-primary/5 border-l-2 border-l-primary/20"
+                              )}
                             >
                               {flexRender(
                                 cell.column.columnDef.cell,
@@ -260,7 +258,9 @@ const Component = <TData, TValue>({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  className={cn(
+                    "border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  )}
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={!canGoPrevious}
                 >
@@ -275,7 +275,9 @@ const Component = <TData, TValue>({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  className={cn(
+                    "border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  )}
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={!canGoNext}
                 >

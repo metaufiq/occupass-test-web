@@ -1,6 +1,8 @@
 import { Link } from '@tanstack/react-router'
 import { Home, ArrowLeft, type LucideIcon } from 'lucide-react'
 
+import { cn } from '@/lib/utils'
+
 interface CustomAction {
   label: string
   onClick?: () => void
@@ -32,14 +34,13 @@ const DEFAULT_ACTIONS: CustomAction[] = [
   }
 ]
 
-
 const getButtonClasses = (variant: 'primary' | 'secondary' = 'primary') => {
-  const baseClasses = "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-md"
-  
-  if (variant === 'primary') {
-    return `${baseClasses} bg-primary hover:bg-primary/90 text-primary-foreground`
-  }
-  return `${baseClasses} bg-secondary hover:bg-secondary/90 text-secondary-foreground`
+  return cn(
+    "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-md",
+    variant === 'primary' 
+      ? "bg-primary hover:bg-primary/90 text-primary-foreground"
+      : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+  )
 }
 
 const renderAction = (action: CustomAction, index: number) => {
