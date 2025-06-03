@@ -11,6 +11,7 @@ import {
   type ColumnFiltersState,
   type PaginationState,
   type OnChangeFn,
+  type VisibilityState,
 } from '@tanstack/react-table';
 import { ArrowUpDown, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 
@@ -35,6 +36,7 @@ interface DataTableProps<TData, TValue> {
     hasNextPage?: boolean;
     onPageChange?: (page: number) => void;
   };
+  hiddenColumns?: string[];
 }
 
 const  renderSortIcon = (sortDirection: false | 'asc' | 'desc') => {
@@ -59,6 +61,7 @@ const Component = <TData, TValue>({
   globalFilter: externalGlobalFilter,
   onGlobalFilterChange: onExternalGlobalFilterChange,
   pagination,
+  hiddenColumns
 }: DataTableProps<TData, TValue>) => {
   // Internal state (used when external state is not provided)
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
@@ -76,6 +79,11 @@ const Component = <TData, TValue>({
   const setColumnFilters = onExternalColumnFiltersChange ?? setInternalColumnFilters;
   const globalFilter = externalGlobalFilter ?? internalGlobalFilter;
   const setGlobalFilter = onExternalGlobalFilterChange ?? setInternalGlobalFilter;
+  const columnVisibility = useMemo(() => hiddenColumns?.reduce((acc, id) => {
+        acc[id] = false;
+        return acc;
+      }
+      , {} as VisibilityState), [hiddenColumns]);
 
   const table = useReactTable({
     data,
@@ -93,6 +101,7 @@ const Component = <TData, TValue>({
       columnFilters,
       globalFilter,
       pagination: pagination ? undefined : paginationState,
+      columnVisibility,
     },
     manualPagination: !!pagination,
     pageCount: pagination?.totalPages,

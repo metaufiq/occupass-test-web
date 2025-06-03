@@ -13,14 +13,16 @@ interface Props {
   onSelectCustomer: (customer: Customer) => void;
 }
 
-
 const CustomerList = ({ onSelectCustomer }: Props) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
   
   // Search and filter state
   const [searchValue, setSearchValue] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState('all');
+  const [filterValues, setFilterValues] = useState<Record<string, string>>({
+    country: 'all',
+    contactTitle: 'all'
+  });
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const columns: ColumnDef<Customer>[] = useMemo(() => [
@@ -35,6 +37,10 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
           )}
         </div>
       ),
+    },
+    {
+     id: 'contactTitle',
+     accessorKey: 'contactTitle',
     },
     {
       accessorKey: 'companyName',
@@ -100,54 +106,81 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
     });
   }, []);
 
-
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
   }, []);
 
-
-  const handleFilterChange = useCallback((value: string) => {
-    setSelectedCountry(value);
+  const handleFilterChange = useCallback((filterKey: string, value: string) => {
+    setFilterValues(prev => ({
+      ...prev,
+      [filterKey]: value
+    }));
     
-    // Update column filters based on selected country
-    if (value === 'all') {
-      setColumnFilters([]);
-    } else {
-      setColumnFilters([
-        {
-          id: 'country',
-          value: value,
-        },
-      ]);
-    }
+    // Update column filters based on selected filters
+    setColumnFilters(prev => {
+      // Remove existing filter for this key
+      const otherFilters = prev.filter(filter => filter.id !== filterKey);
+      
+      // Add new filter if not 'all'
+      if (value !== 'all') {
+        return [...otherFilters, { id: filterKey, value }];
+      }
+      
+      return otherFilters;
+    });
   }, []);
 
-  // Get unique countries for filter dropdown
+  // Get unique values for filter dropdowns
   const uniqueCountries = useMemo(() => {
     return [...new Set(customers.map(c => c.country).filter(Boolean))]
       .sort()
       .map(country => ({ label: country, value: country }));
   }, [customers]);
 
-  // Country filter options for ControlBar
-  const countryFilterOptions = uniqueCountries.length > 0 ? {
-    label: 'Countries',
-    value: 'country',
-    accessorKey: 'country',
-    options: uniqueCountries,
-  } : undefined;
+  const uniqueContactTitles = useMemo(() => {
+    return [...new Set(customers.map(c => c.contactTitle).filter(Boolean))]
+      .sort()
+      .map(title => ({ label: title, value: title }));
+  }, [customers]);
+
+  // Filter options for ControlBar
+  const filterOptions = useMemo(() => {
+    const options = [];
+    
+    if (uniqueCountries.length > 0) {
+      options.push({
+        label: 'Countries',
+        value: 'country',
+        accessorKey: 'country',
+        options: uniqueCountries,
+      });
+    }
+    
+    if (uniqueContactTitles.length > 0) {
+      options.push({
+        label: 'Contact Titles',
+        value: 'contactTitle',
+        accessorKey: 'contactTitle',
+        options: uniqueContactTitles,
+      });
+    }
+    
+    return options;
+  }, [uniqueCountries, uniqueContactTitles]);
 
   return (
     <div className="space-y-6 p-6">
       <PageHeader title="Customers" desc="Manage your customer database with ease"/>
-      {!loading && <ControlBar
-        searchValue={searchValue}
-        onSearchChange={handleSearchChange}
-        searchPlaceholder="Search customers by name, company, city, or phone..."
-        filterOptions={countryFilterOptions}
-        currentFilterValue={selectedCountry}
-        onFilterChange={handleFilterChange}
-      />}
+      {!loading && (
+        <ControlBar
+          searchValue={searchValue}
+          onSearchChange={handleSearchChange}
+          searchPlaceholder="Search customers by name, company, city, or phone..."
+          filterOptions={filterOptions}
+          currentFilterValues={filterValues}
+          onFilterChange={handleFilterChange}
+        />
+      )}
       <DataTable
         columns={columns}
         data={customers}
@@ -157,6 +190,7 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
         onColumnFiltersChange={setColumnFilters}
         globalFilter={searchValue}
         onGlobalFilterChange={setSearchValue}
+        hiddenColumns={['contactTitle']}
       />
     </div>
   );

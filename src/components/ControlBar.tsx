@@ -16,28 +16,29 @@ interface Props {
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
-  filterOptions?: FilterOption;
-  currentFilterValue?: string;
-  onFilterChange?: (value: string) => void;
+  filterOptions?: FilterOption[];
+  currentFilterValues?: Record<string, string>;
+  onFilterChange?: (filterKey: string, value: string) => void;
 }
 
 const ControlBar = ({
   searchValue,
   onSearchChange,
   searchPlaceholder = "Search...",
-  filterOptions,
-  currentFilterValue = 'all',
+  filterOptions = [],
+  currentFilterValues = {},
   onFilterChange,
 }: Props) => {
-  const handleFilterChange = useCallback((value: string) => {
-    onFilterChange?.(value);
+  const handleFilterChange = useCallback((filterKey: string, value: string) => {
+    onFilterChange?.(filterKey, value);
   }, [onFilterChange]);
 
   return (
     <Card className="card-hover bg-card border-border shadow-lg">
       <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
+        <div className="flex flex-col gap-4">
+          {/* Search Bar */}
+          <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
@@ -46,23 +47,37 @@ const ControlBar = ({
               className="pl-10 bg-input border-border focus:ring-primary text-foreground placeholder:text-muted-foreground"
             />
           </div>
-          {filterOptions && onFilterChange && (
-            <Select value={currentFilterValue} onValueChange={handleFilterChange}>
-              <SelectTrigger className="w-56 bg-input border-border text-foreground">
-                <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder={filterOptions.label} />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border-border">
-                <SelectItem value="all" className="text-popover-foreground">
-                  All {filterOptions.label}
-                </SelectItem>
-                {filterOptions.options.map(option => (
-                  <SelectItem key={option.value} value={option.value} className="text-popover-foreground">
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          
+          {/* Filters Row */}
+          {filterOptions.length > 0 && onFilterChange && (
+            <div className="flex flex-wrap gap-3">
+              {filterOptions.map((filter) => (
+                <Select 
+                  key={filter.value}
+                  value={currentFilterValues[filter.value] || 'all'} 
+                  onValueChange={(value) => handleFilterChange(filter.value, value)}
+                >
+                  <SelectTrigger className="w-48 bg-input border-border text-foreground">
+                    <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <SelectValue placeholder={filter.label} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    <SelectItem value="all" className="text-popover-foreground">
+                      All {filter.label}
+                    </SelectItem>
+                    {filter.options.map(option => (
+                      <SelectItem 
+                        key={`${filter.value}-${option.value}`} 
+                        value={option.value} 
+                        className="text-popover-foreground"
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ))}
+            </div>
           )}
         </div>
       </CardContent>
