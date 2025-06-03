@@ -14,7 +14,6 @@ import {
   DollarSign,
   Hash,
   CheckCircle,
-  AlertCircle,
   ShoppingCart
 } from 'lucide-react'
 
@@ -29,9 +28,9 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
 import CustomerOrders from '@/components/customer/detail/CustomerOrders'
+import ErrorPage from '@/components/ErrorPage'
 
 export const Route = createFileRoute('/customer/$id')({
   component: RouteComponent,
@@ -41,7 +40,7 @@ function RouteComponent() {
   const { id } = Route.useParams()
   const router = useRouter()
   
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading  } = useQuery({
     queryKey: ['customerDetails', id],
     queryFn: () => fetchCustomerDetails({ id }),
     enabled: !!id,
@@ -84,39 +83,17 @@ function RouteComponent() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Error Loading Customer</AlertTitle>
-            <AlertDescription>
-              Failed to load customer details. Please try again later.
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
-    )
-  }
-
   const customerData = data?.response
   const customer = customerData?.customer
   const orders = customerData?.orders || []
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-7xl mx-auto">
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>Customer Not Found</AlertTitle>
-            <AlertDescription>
-              No customer found with ID: {id}
-            </AlertDescription>
-          </Alert>
-        </div>
-      </div>
+      <ErrorPage
+        errorCode="404"
+        title="Customer Not Found"
+        description={`No customer found with ID: ${id}`}
+      />
     )
   }
 
