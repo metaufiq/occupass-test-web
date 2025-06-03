@@ -12,7 +12,7 @@ import {
   type PaginationState,
   type OnChangeFn,
 } from '@tanstack/react-table';
-import { ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowUpDown, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +36,16 @@ interface DataTableProps<TData, TValue> {
     onPageChange?: (page: number) => void;
   };
 }
+
+const  renderSortIcon = (sortDirection: false | 'asc' | 'desc') => {
+    if (sortDirection === 'asc') {
+      return <ArrowUp className="ml-2 h-4 w-4 text-primary" />;
+    } else if (sortDirection === 'desc') {
+      return <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
+    } else {
+      return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
+    }
+  };
 
 const Component = <TData, TValue>({
   columns,
@@ -115,6 +125,8 @@ const Component = <TData, TValue>({
     ? (pagination.hasNextPage || false)
     : table.getCanNextPage();
 
+
+
   return (
     <Card className="card-hover bg-card border-border shadow-xl">
       <CardContent className="p-0">
@@ -130,29 +142,36 @@ const Component = <TData, TValue>({
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id} className="border-border bg-muted/50 hover:bg-muted/50">
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          className={`text-card-foreground font-semibold text-sm uppercase tracking-wider transition-colors ${
-                            header.column.getCanSort()
-                              ? 'cursor-pointer hover:text-primary'
-                              : ''
-                          }`}
-                          onClick={header.column.getToggleSortingHandler()}
-                        >
-                          <div className="flex items-center">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                            {header.column.getCanSort() && (
-                              <ArrowUpDown className="ml-2 h-4 w-4" />
-                            )}
-                          </div>
-                        </TableHead>
-                      ))}
+                      {headerGroup.headers.map((header) => {
+                        const sortDirection = header.column.getIsSorted();
+                        const isActiveSorted = sortDirection !== false;
+                        
+                        return (
+                          <TableHead
+                            key={header.id}
+                            className={`text-card-foreground font-semibold text-sm uppercase tracking-wider transition-all duration-200 ${
+                              header.column.getCanSort()
+                                ? 'cursor-pointer hover:text-primary hover:bg-muted/70'
+                                : ''
+                            } ${
+                              isActiveSorted 
+                                ? 'text-primary bg-primary/5 border-l-2 border-l-primary' 
+                                : ''
+                            }`}
+                            onClick={header.column.getToggleSortingHandler()}
+                          >
+                            <div className="flex items-center">
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                              {header.column.getCanSort() && renderSortIcon(sortDirection)}
+                            </div>
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableHeader>
@@ -166,14 +185,23 @@ const Component = <TData, TValue>({
                           index % 2 === 0 ? 'bg-card' : 'bg-muted/10'
                         }`}
                       >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id} className="py-4">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </TableCell>
-                        ))}
+                        {row.getVisibleCells().map((cell) => {
+                          const isColumnSorted = cell.column.getIsSorted() !== false;
+                          
+                          return (
+                            <TableCell 
+                              key={cell.id} 
+                              className={`py-4 transition-all duration-200 ${
+                                isColumnSorted ? 'bg-primary/5 border-l-2 border-l-primary/20' : ''
+                              }`}
+                            >
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext()
+                              )}
+                            </TableCell>
+                          );
+                        })}
                       </TableRow>
                     ))
                   ) : (
@@ -191,61 +219,61 @@ const Component = <TData, TValue>({
             </div>
 
             {/* Pagination */}
-              <div className="flex items-center justify-between p-6 border-t border-border bg-muted/30">
-                <div className="text-sm text-muted-foreground">
-                  {pagination ? (
-                    <>
-                      Showing {title.toLowerCase()} for page{' '}
-                      <span className="font-medium text-foreground">{currentPage}</span>
-                    </>
-                  ) : (
-                    <>
-                      Showing{' '}
-                      <span className="font-medium text-foreground">
-                        {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
-                      </span>{' '}
-                      to{' '}
-                      <span className="font-medium text-foreground">
-                        {Math.min(
-                          (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                          table.getFilteredRowModel().rows.length
-                        )}
-                      </span>{' '}
-                      of{' '}
-                      <span className="font-medium text-foreground">
-                        {table.getFilteredRowModel().rows.length}
-                      </span>{' '}
-                      {title.toLowerCase()}
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={!canGoPrevious}
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground px-3">
-                    Page <span className="font-medium text-foreground">{currentPage}</span>
-                    {!pagination && (
-                      <> of <span className="font-medium text-foreground">{totalPages}</span></>
-                    )}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={!canGoNext}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
+            <div className="flex items-center justify-between p-6 border-t border-border bg-muted/30">
+              <div className="text-sm text-muted-foreground">
+                {pagination ? (
+                  <>
+                    Showing {title.toLowerCase()} for page{' '}
+                    <span className="font-medium text-foreground">{currentPage}</span>
+                  </>
+                ) : (
+                  <>
+                    Showing{' '}
+                    <span className="font-medium text-foreground">
+                      {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
+                    </span>{' '}
+                    to{' '}
+                    <span className="font-medium text-foreground">
+                      {Math.min(
+                        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                        table.getFilteredRowModel().rows.length
+                      )}
+                    </span>{' '}
+                    of{' '}
+                    <span className="font-medium text-foreground">
+                      {table.getFilteredRowModel().rows.length}
+                    </span>{' '}
+                    {title.toLowerCase()}
+                  </>
+                )}
               </div>
+              <div className="flex items-center space-x-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={!canGoPrevious}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm text-muted-foreground px-3">
+                  Page <span className="font-medium text-foreground">{currentPage}</span>
+                  {!pagination && (
+                    <> of <span className="font-medium text-foreground">{totalPages}</span></>
+                  )}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-border text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={!canGoNext}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </>
         )}
       </CardContent>
