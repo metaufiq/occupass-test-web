@@ -138,7 +138,7 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
   } : undefined;
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6 p-6 min-h-screen">
       <PageHeader title="Customers" desc="Manage your customer database with ease"/>
       {!loading && <ControlBar
         searchValue={searchValue}
