@@ -3,6 +3,7 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import { ERROR_CODE } from '@/lib/constants'
 import Header from '../components/Header'
+import Footer from '@/components/Footer'
 import ErrorPage from '../components/ErrorPage'
 
 export const Route = createRootRoute({
@@ -10,7 +11,8 @@ export const Route = createRootRoute({
     <>
       <Header />
       <Outlet />
-      <TanStackRouterDevtools />
+      {import.meta.env.DEV && <TanStackRouterDevtools />}
+      <Footer />
     </>
   ),
   notFoundComponent: () => {
