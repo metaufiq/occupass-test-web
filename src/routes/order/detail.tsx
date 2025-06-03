@@ -1,13 +1,14 @@
 import { 
   ArrowLeft, 
-  FileText, 
   MapPin, 
   DollarSign,
   Calendar,
-  Truck
+  Truck,
+  ShoppingCart
 } from 'lucide-react';
 import { createFileRoute, useNavigate, useRouter } from '@tanstack/react-router'
 
+import { ERROR_CODE } from '@/lib/constants';
 import type { CustomerOrder } from 'dtos';
 import useOrderStore from '@/stores/order';
 import { formatDateAPI } from '@/lib/utils';
@@ -16,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import OrderItems from '@/components/order/detail/OrderItems';
+import ErrorPage from '@/components/ErrorPage'; // Import the enhanced ErrorPage
 
 export const Route = createFileRoute('/order/detail')({
   component: RouteComponent,
@@ -50,26 +52,19 @@ function RouteComponent() {
 
   if (!selectedCustomerOrder?.order) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <div className="max-w-4xl mx-auto">
-          <Button 
-            onClick={handleGoToOrderPage}
-            variant="outline"
-            className="mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Go To Order Page
-          </Button>
-          
-          <Card className="text-center">
-            <CardContent className="p-8">
-              <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <CardTitle className="text-2xl mb-2">No Order Selected</CardTitle>
-              <p className="text-muted-foreground">Please select an order to view its details.</p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <ErrorPage
+        errorCode={ERROR_CODE.NOT_FOUND}
+        title="No Order Selected"
+        description="Please select an order from the orders list to view its details. You can browse all available orders and click on any order to see its complete information."
+        customActions={[
+          {
+            label: 'Go To Orders',
+            onClick: handleGoToOrderPage,
+            icon: ShoppingCart,
+            variant: 'primary'
+          },
+        ]}
+      />
     );
   }
 

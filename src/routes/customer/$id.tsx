@@ -17,6 +17,7 @@ import {
   ShoppingCart
 } from 'lucide-react'
 
+import { ERROR_CODE } from '@/lib/constants'
 import { fetchCustomerDetails } from '@/api/customers'
 import { 
   Card, 
@@ -90,7 +91,7 @@ function RouteComponent() {
   if (!customer) {
     return (
       <ErrorPage
-        errorCode="404"
+        errorCode={ERROR_CODE.NOT_FOUND}
         title="Customer Not Found"
         description={`No customer found with ID: ${id}`}
       />

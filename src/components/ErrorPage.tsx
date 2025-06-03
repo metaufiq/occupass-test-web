@@ -1,13 +1,86 @@
 import { Link } from '@tanstack/react-router'
-import { Home, ArrowLeft } from 'lucide-react'
+import { Home, ArrowLeft, type LucideIcon } from 'lucide-react'
+
+interface CustomAction {
+  label: string
+  onClick?: () => void
+  to?: string
+  icon?: LucideIcon
+  variant?: 'primary' | 'secondary'
+}
 
 interface ErrorPageProps {
   errorCode?: string | number
   title: string
   description: string
+  customActions?: CustomAction[]
+  showDefaultActions?: boolean
 }
 
-const ErrorPage = ({ errorCode, title, description }: ErrorPageProps) => {
+const DEFAULT_ACTIONS: CustomAction[] = [
+  {
+    label: 'Go Home',
+    to: '/',
+    icon: Home,
+    variant: 'primary'
+  },
+  {
+    label: 'Go Back',
+    onClick: () => window.history.back(),
+    icon: ArrowLeft,
+    variant: 'secondary'
+  }
+]
+
+
+const getButtonClasses = (variant: 'primary' | 'secondary' = 'primary') => {
+  const baseClasses = "inline-flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-md"
+  
+  if (variant === 'primary') {
+    return `${baseClasses} bg-primary hover:bg-primary/90 text-primary-foreground`
+  }
+  return `${baseClasses} bg-secondary hover:bg-secondary/90 text-secondary-foreground`
+}
+
+const renderAction = (action: CustomAction, index: number) => {
+  const IconComponent = action.icon
+  const buttonClasses = getButtonClasses(action.variant)
+
+  if (action.to) {
+    return (
+      <Link
+        key={index}
+        to={action.to}
+        className={buttonClasses}
+      >
+        {IconComponent && <IconComponent className="w-5 h-5" />}
+        {action.label}
+      </Link>
+    )
+  }
+
+  return (
+    <button
+      key={index}
+      onClick={action.onClick}
+      className={buttonClasses}
+    >
+      {IconComponent && <IconComponent className="w-5 h-5" />}
+      {action.label}
+    </button>
+  )
+}
+
+const ErrorPage = ({ 
+  errorCode, 
+  title, 
+  description, 
+  customActions = [],
+  showDefaultActions = true
+}: ErrorPageProps) => {
+
+  const actionsToShow = customActions.length > 0 ? customActions : (showDefaultActions ? DEFAULT_ACTIONS : [])
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-2xl mx-auto text-center">
@@ -33,23 +106,11 @@ const ErrorPage = ({ errorCode, title, description }: ErrorPageProps) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Link
-              to="/"
-              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-md"
-            >
-              <Home className="w-5 h-5" />
-              Go Home
-            </Link>
-            
-            <button
-              onClick={() => window.history.back()}
-              className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 text-secondary-foreground px-6 py-3 rounded-lg font-medium transition-all duration-200 hover:scale-105 shadow-md"
-            >
-              <ArrowLeft className="w-5 h-5" />
-              Go Back
-            </button>
-          </div>
+          {actionsToShow.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              {actionsToShow.map((action, index) => renderAction(action, index))}
+            </div>
+          )}
         </div>
 
         {/* Status Indicator - Only show if errorCode is provided */}
