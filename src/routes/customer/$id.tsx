@@ -1,5 +1,7 @@
+import { useMemo } from 'react'
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { type ColumnDef } from '@tanstack/react-table'
 import { 
   ArrowLeft, 
   User, 
@@ -21,6 +23,8 @@ import {
   ShoppingCart
 } from 'lucide-react'
 
+
+import type { CustomerOrder } from 'dtos'
 import { formatDateAPI } from '@/lib/utils'
 import { fetchCustomerDetails } from '@/api/customers'
 import { 
@@ -30,19 +34,12 @@ import {
   CardHeader, 
   CardTitle 
 } from '@/components/ui/card'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Separator } from '@/components/ui/separator'
+import DataTable from '@/components/DataTable'
 
 export const Route = createFileRoute('/customer/$id')({
   component: RouteComponent,
@@ -62,38 +59,178 @@ function RouteComponent() {
     router.history.back()
   }
 
-if (isLoading) {
-  return (
-    <div className="min-h-screen bg-background">
-      {/* Header Skeleton */}
-      <div className="gradient-bg border-b border-border">
-        <div className="max-w-7xl mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Skeleton className="h-10 w-24" />
-              <div>
-                <Skeleton className="h-8 w-48 mb-2" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-            </div>
-            <Skeleton className="h-6 w-24" />
-          </div>
-        </div>
-      </div>
+  const getOrderStatus = (order: any) => {
+    if (order?.shippedDate) return { 
+      label: 'Shipped', 
+      variant: 'default' as const, 
+      icon: CheckCircle 
+    }
+    if (order?.requiredDate && !order?.shippedDate) return { 
+      label: 'Pending', 
+      variant: 'secondary' as const, 
+      icon: Clock 
+    }
+    return { 
+      label: 'Processing', 
+      variant: 'outline' as const, 
+      icon: AlertCircle 
+    }
+  }
 
-      {/* Content Skeleton */}
-      <div className="max-w-7xl mx-auto p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Skeleton className="h-64" />
+  // Define columns for DataTable
+  const orderColumns: ColumnDef<CustomerOrder>[] = useMemo(() => [
+    {
+      accessorKey: 'order.id',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Hash className="h-4 w-4" />
+          Order ID
+        </div>
+      ),
+      cell: ({ row }) => (
+        <Badge variant="outline" className="flex items-center gap-1 w-fit">
+          <Hash className="h-3 w-3" />
+          {row.original.order?.id}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'order.orderDate',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4" />
+          Order Date
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {row.original.order?.orderDate ? formatDateAPI(row.original.order.orderDate) : 'N/A'}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'order.shipName',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4" />
+          Ship To
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-muted-foreground" />
+          {row.original.order?.shipName || 'N/A'}
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'order.shipCity',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <MapPin className="h-4 w-4" />
+          Destination
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-sm flex items-start gap-2">
+          <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+          <div>
+            <div>{row.original.order?.shipCity || 'N/A'}</div>
+            {row.original.order?.shipCountry && (
+              <div className="text-muted-foreground">{row.original.order.shipCountry}</div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'order.freight',
+      header: () => (
+        <div className="flex items-center justify-end gap-2">
+          <DollarSign className="h-4 w-4" />
+          Freight
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-right font-mono">
+          <div className="flex items-center justify-end gap-1">
+            <DollarSign className="h-3 w-3 text-muted-foreground" />
+            {(row.original.order?.freight || 0).toFixed(2)}
+          </div>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'orderDetails',
+      header: () => (
+        <div className="flex items-center justify-center gap-2">
+          <Package className="h-4 w-4" />
+          Items
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="text-center">
+          <Badge variant="secondary" className="flex items-center gap-1 w-fit mx-auto">
+            <Package className="h-3 w-3" />
+            {row.original.orderDetails?.length || 0}
+          </Badge>
+        </div>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: () => (
+        <div className="flex items-center gap-2">
+          <Truck className="h-4 w-4" />
+          Status
+        </div>
+      ),
+      cell: ({ row }) => {
+        const status = getOrderStatus(row.original.order)
+        const StatusIcon = status.icon
+        return (
+          <Badge variant={status.variant} className="flex items-center gap-1 w-fit">
+            <StatusIcon className="h-3 w-3" />
+            {status.label}
+          </Badge>
+        )
+      },
+    },
+  ], [])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Header Skeleton */}
+        <div className="gradient-bg border-b border-border">
+          <div className="max-w-7xl mx-auto px-6 py-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Skeleton className="h-10 w-24" />
+                <div>
+                  <Skeleton className="h-8 w-48 mb-2" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </div>
+        </div>
+
+        {/* Content Skeleton */}
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
             <Skeleton className="h-64" />
           </div>
-          <Skeleton className="h-64" />
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   if (error) {
     return (
@@ -129,24 +266,6 @@ if (isLoading) {
         </div>
       </div>
     )
-  }
-
-  const getOrderStatus = (order: any) => {
-    if (order?.shippedDate) return { 
-      label: 'Shipped', 
-      variant: 'default' as const, 
-      icon: CheckCircle 
-    }
-    if (order?.requiredDate && !order?.shippedDate) return { 
-      label: 'Pending', 
-      variant: 'secondary' as const, 
-      icon: Clock 
-    }
-    return { 
-      label: 'Processing', 
-      variant: 'outline' as const, 
-      icon: AlertCircle 
-    }
   }
 
   const totalFreight = orders.reduce((sum, order) => sum + (order.order?.freight || 0), 0)
@@ -335,135 +454,35 @@ if (isLoading) {
           </div>
         </div>
 
-        {/* Orders Table */}
+        {/* Orders DataTable */}
         <div className="mt-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Package className="h-5 w-5 mr-3 text-chart-1" />
-                Customer Orders
-              </CardTitle>
-              <CardDescription>
-                Complete order history for {customer.companyName} ({orders.length} orders)
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {orders.length === 0 ? (
+          <div className="mb-6">
+            <div className="flex items-center gap-3 mb-2">
+              <Package className="h-6 w-6 text-chart-1" />
+              <h2 className="text-2xl font-bold text-foreground">Customer Orders</h2>
+            </div>
+            <p className="text-muted-foreground">
+              Complete order history for {customer.companyName} ({orders.length} orders)
+            </p>
+          </div>
+          
+          {orders.length === 0 ? (
+            <Card>
+              <CardContent>
                 <div className="text-center py-12">
                   <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg">No orders found for this customer</p>
                   <p className="text-muted-foreground text-sm mt-2">Orders will appear here once created</p>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="flex items-center gap-2">
-                        <Hash className="h-4 w-4" />
-                        Order ID
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4" />
-                          Order Date
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          Ship To
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Destination
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <DollarSign className="h-4 w-4" />
-                          Freight
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <Package className="h-4 w-4" />
-                          Items
-                        </div>
-                      </TableHead>
-                      <TableHead>
-                        <div className="flex items-center gap-2">
-                          <Truck className="h-4 w-4" />
-                          Status
-                        </div>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders.map((customerOrder, index) => {
-                      const order = customerOrder.order
-                      const orderDetails = customerOrder.orderDetails || []
-                      const status = getOrderStatus(order)
-                      const StatusIcon = status.icon
-                      
-                      return (
-                        <TableRow key={order?.id || index}>
-                          <TableCell className="font-medium">
-                            <Badge variant="outline" className="flex items-center gap-1">
-                              <Hash className="h-3 w-3" />
-                              {order?.id}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Calendar className="h-4 w-4 text-muted-foreground" />
-                              {order?.orderDate ? formatDateAPI(order.orderDate) : 'N/A'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4 text-muted-foreground" />
-                              {order?.shipName || 'N/A'}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm flex items-start gap-2">
-                              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                              <div>
-                                <div>{order?.shipCity || 'N/A'}</div>
-                                {order?.shipCountry && (
-                                  <div className="text-muted-foreground">{order.shipCountry}</div>
-                                )}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right font-mono">
-                            <div className="flex items-center justify-end gap-1">
-                              <DollarSign className="h-3 w-3 text-muted-foreground" />
-                              {(order?.freight || 0).toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Badge variant="secondary" className="flex items-center gap-1 w-fit mx-auto">
-                              <Package className="h-3 w-3" />
-                              {orderDetails.length}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={status.variant} className="flex items-center gap-1 w-fit">
-                              <StatusIcon className="h-3 w-3" />
-                              {status.label}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <DataTable
+              columns={orderColumns}
+              data={orders}
+              title="Orders"
+            />
+          )}
         </div>
       </div>
     </div>
