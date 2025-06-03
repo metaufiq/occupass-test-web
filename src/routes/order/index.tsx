@@ -220,14 +220,14 @@ const OrderList = ({ onSelectOrder }: Props) => {
   return (
     <div className="space-y-6 p-6">
       <PageHeader title="Orders" desc="Track and manage customer orders with ease" />
-      <ControlBar
+      {!loading && <ControlBar
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search orders by order ID or customer..."
         filterOptions={statusFilterOptions}
         currentFilterValue={selectedStatus}
         onFilterChange={handleFilterChange}
-      />
+      />}
       <DataTable
         columns={columns}
         data={orders}

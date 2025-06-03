@@ -140,14 +140,14 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
   return (
     <div className="space-y-6 p-6">
       <PageHeader title="Customers" desc="Manage your customer database with ease"/>
-      <ControlBar
+      {!loading && <ControlBar
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search customers by name, company, city, or phone..."
         filterOptions={countryFilterOptions}
         currentFilterValue={selectedCountry}
         onFilterChange={handleFilterChange}
-      />
+      />}
       <DataTable
         columns={columns}
         data={customers}
