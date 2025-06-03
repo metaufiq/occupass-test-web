@@ -110,51 +110,46 @@ function RouteComponent() {
       ),
     },
     {
-      accessorKey: 'order.shipName',
+      accessorKey: 'order.requiredDate',
       header: () => (
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Ship To
+          <Calendar className="h-4 w-4" />
+          Required Date
         </div>
       ),
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" />
-          {row.original.order?.shipName || 'N/A'}
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {row.original.order?.requiredDate ? formatDateAPI(row.original.order.requiredDate) : 'N/A'}
         </div>
       ),
     },
     {
-      accessorKey: 'order.shipCity',
+      accessorKey: 'order.shippedDate',
       header: () => (
         <div className="flex items-center gap-2">
-          <MapPin className="h-4 w-4" />
-          Destination
+          <Calendar className="h-4 w-4" />
+          Shipped Date
         </div>
       ),
       cell: ({ row }) => (
-        <div className="text-sm flex items-start gap-2">
-          <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-          <div>
-            <div>{row.original.order?.shipCity || 'N/A'}</div>
-            {row.original.order?.shipCountry && (
-              <div className="text-muted-foreground">{row.original.order.shipCountry}</div>
-            )}
-          </div>
+        <div className="flex items-center gap-2">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          {row.original.order?.shippedDate ? formatDateAPI(row.original.order.shippedDate) : 'N/A'}
         </div>
       ),
     },
     {
       accessorKey: 'order.freight',
       header: () => (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <DollarSign className="h-4 w-4" />
           Freight
         </div>
       ),
       cell: ({ row }) => (
         <div className="text-right font-mono">
-          <div className="flex items-center justify-end gap-1">
+          <div className="flex items-center gap-1">
             <DollarSign className="h-3 w-3 text-muted-foreground" />
             {(row.original.order?.freight || 0).toFixed(2)}
           </div>
@@ -445,7 +440,6 @@ function RouteComponent() {
                     <p className="text-2xl font-bold text-foreground">${totalFreight.toFixed(2)}</p>
                   </div>
                   <Badge variant="secondary" className="text-lg px-3 py-1 flex items-center gap-2">
-                    <DollarSign className="h-4 w-4" />
                     ${totalFreight.toFixed(2)}
                   </Badge>
                 </div>
