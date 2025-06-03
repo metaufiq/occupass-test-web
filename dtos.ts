@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* Options:
 Date: 2025-06-01 06:13:08
 Version: 8.53

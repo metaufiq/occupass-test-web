@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Building2, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function Footer() {
