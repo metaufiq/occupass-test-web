@@ -1,11 +1,5 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation } from '@tanstack/react-router'
-import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from '@/components/ui/navigation-menu'
 import { Button } from '@/components/ui/button'
 import { 
   Building2, 
@@ -81,38 +75,34 @@ export default function Header() {
             {/* Right Side - Navigation + Actions */}
             <div className="flex items-center space-x-6">
               {/* Desktop Navigation  */}
-              <NavigationMenu className="hidden md:flex">
-                <NavigationMenuList className="space-x-2">
-                  {navigationItems.map((item) => {
-                    const isActive = isActiveRoute(item.href)
-                    
-                    return (
-                      <NavigationMenuItem key={item.href}>
-                        <Link to={item.href}>
-                          <NavigationMenuLink 
-                            className={`
-                              group inline-flex items-center justify-center 
-                              py-2 text-sm font-medium transition-all duration-200
-                              relative
+              <nav className="hidden md:flex items-center space-x-2">
+                {navigationItems.map((item) => {
+                  const isActive = isActiveRoute(item.href)
+                  
+                  return (
+                    <Link 
+                      key={item.href}
+                      to={item.href}
+                      className={`
+                        group inline-flex items-center justify-center 
+                        py-2 px-4 text-sm font-medium transition-all duration-200
+                        relative rounded-lg
 
-                              hover:after:scale-x-100 after:transition-transform after:duration-200
-                              after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 
-                              after:h-0.5 after:w-4/5 after:rounded-full
-                              active:scale-95
-                              ${isActive 
-                                ? 'text-primary bg-primary/10 after:scale-x-100 after:bg-primary shadow-sm' 
-                                : 'text-muted-foreground hover:text-foreground after:scale-x-0 after:bg-foreground hover:bg-muted/50'
-                              }
-                            `}
-                          >
-                            <span className="font-medium">{item.title}</span>
-                          </NavigationMenuLink>
-                        </Link>
-                      </NavigationMenuItem>
-                    )
-                  })}
-                </NavigationMenuList>
-              </NavigationMenu>
+                        hover:after:scale-x-100 after:transition-transform after:duration-200
+                        after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 
+                        after:h-0.5 after:w-4/5 after:rounded-full
+                        active:scale-95
+                        ${isActive 
+                          ? 'text-primary bg-primary/10 after:scale-x-100 after:bg-primary shadow-sm' 
+                          : 'text-muted-foreground hover:text-foreground after:scale-x-0 after:bg-foreground hover:bg-muted/50'
+                        }
+                      `}
+                    >
+                      <span className="font-medium">{item.title}</span>
+                    </Link>
+                  )
+                })}
+              </nav>
 
               {/* Mobile Menu Button */}
               <Button
