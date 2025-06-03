@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import useOrderStore from '@/stores/order';
 import DataTable from '@/components/DataTable';
 import ControlBar from '@/components/ControlBar';
+import PageHeader from '@/components/PageHeader';
 
 type OrderStatus = 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 
@@ -24,12 +25,12 @@ const calculateOrderAmount = (orderDetails: OrderDetail[]) => {
   }, 0);
 };
 
-// Helper function to get total items count
+// Helper function to get total items count from order details
 const getItemsCount = (orderDetails: OrderDetail[]) => {
   return orderDetails.reduce((total, detail) => total + detail.quantity, 0);
 };
 
-// Helper function to determine order status (since it's not in the backend)
+// Helper function to determine order status based on dates
 const getOrderStatus = (order: Order): OrderStatus => {
   if (order.shippedDate) {
     return 'Shipped';
@@ -51,7 +52,7 @@ const getStatusColor = (status: OrderStatus) => {
   }
 };
 
-// Order List Component
+
 const OrderList = ({ onSelectOrder }: Props) => {
   const setSelectedCustomerOrder = useOrderStore((state) => state.setSelectedCustomerOrder);
 
@@ -173,18 +174,18 @@ const OrderList = ({ onSelectOrder }: Props) => {
     setSelectedCustomerOrder(null); 
   }, [setSelectedCustomerOrder]);
 
-  // Handle search changes
+
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   }, []);
 
-  // Handle filter changes
+
   const handleFilterChange = useCallback((value: string) => {
     setSelectedStatus(value);
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1);
     
-    // Update column filters for the table
+    // Update column filters based on selected status
     if (value === 'all') {
       setColumnFilters([]);
     } else {
@@ -197,12 +198,12 @@ const OrderList = ({ onSelectOrder }: Props) => {
     }
   }, []);
 
-  // Handle pagination
+
   const handlePageChange = useCallback((page: number) => {
     setCurrentPage(page);
   }, []);
 
-  // Status filter options for ControlBar
+
   const statusFilterOptions = {
     label: 'Statuses',
     value: 'status',
@@ -218,12 +219,7 @@ const OrderList = ({ onSelectOrder }: Props) => {
 
   return (
     <div className="space-y-6 p-6">
-
-      <div className="mb-8">
-        <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Orders</h2>
-        <p className="text-muted-foreground text-lg">Track and manage customer orders with ease</p>
-      </div>
-      {/* Control Bar for search and filters */}
+      <PageHeader title="Orders" desc="Track and manage customer orders with ease" />
       <ControlBar
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
@@ -232,8 +228,6 @@ const OrderList = ({ onSelectOrder }: Props) => {
         currentFilterValue={selectedStatus}
         onFilterChange={handleFilterChange}
       />
-
-      {/* Data Table */}
       <DataTable
         columns={columns}
         data={orders}

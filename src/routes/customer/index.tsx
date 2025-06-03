@@ -7,12 +7,13 @@ import { fetchAllCustomers } from '@/api/customers';
 import { Button } from '@/components/ui/button';
 import DataTable from '@/components/DataTable';
 import ControlBar from '@/components/ControlBar';
+import PageHeader from '@/components/PageHeader';
 
 interface Props {
   onSelectCustomer: (customer: Customer) => void;
 }
 
-// Customer List Component
+
 const CustomerList = ({ onSelectCustomer }: Props) => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,16 +100,16 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
     });
   }, []);
 
-  // Handle search changes
+
   const handleSearchChange = useCallback((value: string) => {
     setSearchValue(value);
   }, []);
 
-  // Handle filter changes
+
   const handleFilterChange = useCallback((value: string) => {
     setSelectedCountry(value);
     
-    // Update column filters for the table
+    // Update column filters based on selected country
     if (value === 'all') {
       setColumnFilters([]);
     } else {
@@ -138,13 +139,7 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
 
   return (
     <div className="space-y-6 p-6">
-      
-      <div className="mb-8">
-        <h2 className="text-4xl font-bold text-foreground mb-3 tracking-tight">Customers</h2>
-        <p className="text-muted-foreground text-lg">Manage your customer database with ease</p>
-      </div>
-
-      {/* Control Bar for search and filters */}
+      <PageHeader title="Customers" desc="Manage your customer database with ease"/>
       <ControlBar
         searchValue={searchValue}
         onSearchChange={handleSearchChange}
@@ -153,8 +148,6 @@ const CustomerList = ({ onSelectCustomer }: Props) => {
         currentFilterValue={selectedCountry}
         onFilterChange={handleFilterChange}
       />
-
-      {/* Data Table */}
       <DataTable
         columns={columns}
         data={customers}
