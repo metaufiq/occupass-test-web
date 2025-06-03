@@ -8,7 +8,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="dark bg-background border-t border-border/50 mt-auto bottom-0 absolute">
+    <footer className="dark bg-background border-t border-border/50 mt-auto">
       {/* Main Footer Content */}
       <div className="w-full px-5 py-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 w-full">
