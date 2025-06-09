@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo, useState } from 'react';
+import { memo, useCallback, useMemo, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -12,13 +12,28 @@ import {
   type PaginationState,
   type OnChangeFn,
   type VisibilityState,
-} from '@tanstack/react-table';
-import { ArrowUpDown, ChevronLeft, ChevronRight, ArrowUp, ArrowDown } from 'lucide-react';
+} from "@tanstack/react-table";
+import {
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ArrowUp,
+  ArrowDown,
+} from "lucide-react";
 
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+
+export const PAGE_SIZE = 10;
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -40,10 +55,10 @@ interface DataTableProps<TData, TValue> {
   hiddenColumns?: string[];
 }
 
-const renderSortIcon = (sortDirection: false | 'asc' | 'desc') => {
-  if (sortDirection === 'asc') {
+const renderSortIcon = (sortDirection: false | "asc" | "desc") => {
+  if (sortDirection === "asc") {
     return <ArrowUp className="ml-2 h-4 w-4 text-primary" />;
-  } else if (sortDirection === 'desc') {
+  } else if (sortDirection === "desc") {
     return <ArrowDown className="ml-2 h-4 w-4 text-primary" />;
   } else {
     return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
@@ -62,29 +77,35 @@ const Component = <TData, TValue>({
   globalFilter: externalGlobalFilter,
   onGlobalFilterChange: onExternalGlobalFilterChange,
   pagination,
-  hiddenColumns
+  hiddenColumns,
 }: DataTableProps<TData, TValue>) => {
   // Internal state (used when external state is not provided)
   const [internalSorting, setInternalSorting] = useState<SortingState>([]);
-  const [internalColumnFilters, setInternalColumnFilters] = useState<ColumnFiltersState>([]);
-  const [internalGlobalFilter, setInternalGlobalFilter] = useState('');
+  const [internalColumnFilters, setInternalColumnFilters] =
+    useState<ColumnFiltersState>([]);
+  const [internalGlobalFilter, setInternalGlobalFilter] = useState("");
   const [paginationState, setPaginationState] = useState<PaginationState>({
     pageIndex: pagination?.currentPage ? pagination.currentPage - 1 : 0,
-    pageSize: 10,
+    pageSize: PAGE_SIZE,
   });
 
   // Use external state if provided, otherwise use internal state
   const sorting = externalSorting ?? internalSorting;
   const setSorting = onExternalSortingChange ?? setInternalSorting;
   const columnFilters = externalColumnFilters ?? internalColumnFilters;
-  const setColumnFilters = onExternalColumnFiltersChange ?? setInternalColumnFilters;
+  const setColumnFilters =
+    onExternalColumnFiltersChange ?? setInternalColumnFilters;
   const globalFilter = externalGlobalFilter ?? internalGlobalFilter;
-  const setGlobalFilter = onExternalGlobalFilterChange ?? setInternalGlobalFilter;
-  const columnVisibility = useMemo(() => hiddenColumns?.reduce((acc, id) => {
+  const setGlobalFilter =
+    onExternalGlobalFilterChange ?? setInternalGlobalFilter;
+  const columnVisibility = useMemo(
+    () =>
+      hiddenColumns?.reduce((acc, id) => {
         acc[id] = false;
         return acc;
-      }
-      , {} as VisibilityState), [hiddenColumns]);
+      }, {} as VisibilityState),
+    [hiddenColumns]
+  );
 
   const table = useReactTable({
     data,
@@ -108,31 +129,33 @@ const Component = <TData, TValue>({
     pageCount: pagination?.totalPages,
   });
 
-  const handlePageChange = useCallback((page: number) => {
-    if (pagination && pagination.onPageChange) {
-      pagination.onPageChange(page);
-    } else {
-      setPaginationState(prev => ({ ...prev, pageIndex: page - 1 }));
-    }
-  }, [pagination]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      if (pagination && pagination.onPageChange) {
+        pagination.onPageChange(page);
+      } else {
+        setPaginationState((prev) => ({ ...prev, pageIndex: page - 1 }));
+      }
+    },
+    [pagination]
+  );
 
-  const currentPage = useMemo(() => 
-    pagination
-      ? (pagination.currentPage || 1)
-      : paginationState.pageIndex + 1, 
+  const currentPage = useMemo(
+    () =>
+      pagination ? pagination.currentPage || 1 : paginationState.pageIndex + 1,
     [pagination, paginationState.pageIndex]
   );
 
-  const totalPages = pagination ? 
-    (pagination.totalPages || 1) : 
-    table.getPageCount();
-  
+  const totalPages = pagination
+    ? pagination.totalPages || 1
+    : table.getPageCount();
+
   const canGoPrevious = pagination
     ? currentPage > 1
     : table.getCanPreviousPage();
 
   const canGoNext = pagination
-    ? (pagination.hasNextPage || false)
+    ? pagination.hasNextPage || false
     : table.getCanNextPage();
 
   return (
@@ -141,7 +164,9 @@ const Component = <TData, TValue>({
         {loading ? (
           <div className="p-12 text-center">
             <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mb-4"></div>
-            <div className="text-muted-foreground text-lg">Loading {title.toLowerCase()}...</div>
+            <div className="text-muted-foreground text-lg">
+              Loading {title.toLowerCase()}...
+            </div>
           </div>
         ) : (
           <>
@@ -149,19 +174,24 @@ const Component = <TData, TValue>({
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id} className="border-border bg-muted/50 hover:bg-muted/50">
+                    <TableRow
+                      key={headerGroup.id}
+                      className="border-border bg-muted/50 hover:bg-muted/50"
+                    >
                       {headerGroup.headers.map((header) => {
                         const sortDirection = header.column.getIsSorted();
                         const isActiveSorted = sortDirection !== false;
                         const canSort = header.column.getCanSort();
-                        
+
                         return (
                           <TableHead
                             key={header.id}
                             className={cn(
                               "text-card-foreground font-semibold text-sm uppercase tracking-wider transition-all duration-200",
-                              canSort && "cursor-pointer hover:text-primary hover:bg-muted/70",
-                              isActiveSorted && "text-primary bg-primary/5 border-l-2 border-l-primary"
+                              canSort &&
+                                "cursor-pointer hover:text-primary hover:bg-muted/70",
+                              isActiveSorted &&
+                                "text-primary bg-primary/5 border-l-2 border-l-primary"
                             )}
                             onClick={header.column.getToggleSortingHandler()}
                           >
@@ -192,14 +222,16 @@ const Component = <TData, TValue>({
                         )}
                       >
                         {row.getVisibleCells().map((cell) => {
-                          const isColumnSorted = cell.column.getIsSorted() !== false;
-                          
+                          const isColumnSorted =
+                            cell.column.getIsSorted() !== false;
+
                           return (
-                            <TableCell 
-                              key={cell.id} 
+                            <TableCell
+                              key={cell.id}
                               className={cn(
                                 "py-4 transition-all duration-200",
-                                isColumnSorted && "bg-primary/5 border-l-2 border-l-primary/20"
+                                isColumnSorted &&
+                                  "bg-primary/5 border-l-2 border-l-primary/20"
                               )}
                             >
                               {flexRender(
@@ -230,26 +262,31 @@ const Component = <TData, TValue>({
               <div className="text-sm text-muted-foreground">
                 {pagination ? (
                   <>
-                    Showing {title.toLowerCase()} for page{' '}
-                    <span className="font-medium text-foreground">{currentPage}</span>
+                    Showing {title.toLowerCase()} for page{" "}
+                    <span className="font-medium text-foreground">
+                      {currentPage}
+                    </span>
                   </>
                 ) : (
                   <>
-                    Showing{' '}
+                    Showing{" "}
                     <span className="font-medium text-foreground">
-                      {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
-                    </span>{' '}
-                    to{' '}
+                      {table.getState().pagination.pageIndex *
+                        table.getState().pagination.pageSize +
+                        1}
+                    </span>{" "}
+                    to{" "}
                     <span className="font-medium text-foreground">
                       {Math.min(
-                        (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                        (table.getState().pagination.pageIndex + 1) *
+                          table.getState().pagination.pageSize,
                         table.getFilteredRowModel().rows.length
                       )}
-                    </span>{' '}
-                    of{' '}
+                    </span>{" "}
+                    of{" "}
                     <span className="font-medium text-foreground">
                       {table.getFilteredRowModel().rows.length}
-                    </span>{' '}
+                    </span>{" "}
                     {title.toLowerCase()}
                   </>
                 )}
@@ -267,9 +304,18 @@ const Component = <TData, TValue>({
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground px-3">
-                  Page <span className="font-medium text-foreground">{currentPage}</span>
+                  Page{" "}
+                  <span className="font-medium text-foreground">
+                    {currentPage}
+                  </span>
                   {!pagination && (
-                    <> of <span className="font-medium text-foreground">{totalPages}</span></>
+                    <>
+                      {" "}
+                      of{" "}
+                      <span className="font-medium text-foreground">
+                        {totalPages}
+                      </span>
+                    </>
                   )}
                 </span>
                 <Button

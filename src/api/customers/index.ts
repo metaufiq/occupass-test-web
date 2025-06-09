@@ -1,8 +1,14 @@
-import { GetAllCustomers, GetCustomerDetails } from 'dtos'
+import { GetCustomerDetails, QueryCustomers } from 'dtos'
 import { client } from '../client'
 
-export const fetchAllCustomers = async () => {
-  const response = await client.api(new GetAllCustomers())
+
+export interface FetchAllCustomersParams {
+  skip?: number
+  take?: number
+}
+
+export const fetchAllCustomers = async (params: FetchAllCustomersParams) => {
+  const response = await client.api(new QueryCustomers(params))
   return response
 }
 
